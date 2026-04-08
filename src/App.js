@@ -529,17 +529,23 @@ async function callClaude(system,user,maxTokens=1500){
 
 function parseJSON(raw){
   const cleaned=raw.replace(/```json\s*/g,"").replace(/```\s*/g,"").trim();
-  // find outermost { }
   const start=cleaned.indexOf("{");
   const end=cleaned.lastIndexOf("}");
   if(start===-1||end===-1)throw new Error("No JSON object found in response");
   const slice=cleaned.slice(start,end+1);
-  try{return JSON.parse(slice);}
-  catch{
-    // try to sanitise common issues: unescaped newlines inside strings
-    const safe=slice.replace(/(?<=":.*?)[\r\n]+(?=.*?")/g," ");
-    return JSON.parse(safe);
+
+  // Walk char-by-char and escape literal newlines inside string values
+  let inString=false,escaped=false,result="";
+  for(let i=0;i<slice.length;i++){
+    const ch=slice[i];
+    if(escaped){result+=ch;escaped=false;continue;}
+    if(ch==="\\"&&inString){result+=ch;escaped=true;continue;}
+    if(ch==='"'){inString=!inString;result+=ch;continue;}
+    if(inString&&(ch==="\n"||ch==="\r")){result+="\\n";continue;}
+    result+=ch;
   }
+
+  return JSON.parse(result);
 }
 
 function AICheckerTab({user}){
