@@ -531,10 +531,9 @@ function parseJSON(raw){
   const cleaned=raw.replace(/```json\s*/g,"").replace(/```\s*/g,"").trim();
   const start=cleaned.indexOf("{");
   const end=cleaned.lastIndexOf("}");
-  if(start===-1||end===-1)throw new Error("No JSON object found in response");
+  if(start===-1||end===-1)throw new Error("Response was cut off — try again");
   const slice=cleaned.slice(start,end+1);
 
-  // Walk char-by-char and escape literal newlines inside string values
   let inString=false,escaped=false,result="";
   for(let i=0;i<slice.length;i++){
     const ch=slice[i];
@@ -605,7 +604,7 @@ If the question involves a function or graph, include a "graph" array with Desmo
 Return ONLY valid JSON, no markdown, no extra text:
 {"question":"question text with $math$","marks":<int 1-5>,"graph":["desmos expression 1","desmos expression 2"],"hints":["hint with $math$"],"solution_steps":["Step 1: ... $math$"],"final_answer":"answer with $math$"}
 Make it genuinely challenging and exam-authentic. Ensure the JSON is complete and properly closed.`;
-      const raw=await callClaude(system,`Generate a ${diffLabel} question on ${topic} for ${course}.`,1200);
+      const raw=await callClaude(system,`Generate a ${diffLabel} question on ${topic} for ${course}.`,2000);
       setQuestion(parseJSON(raw));
     }catch(e){setGenError("Error: "+e.message);}
     setGenLoading(false);
