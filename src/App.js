@@ -632,6 +632,21 @@ Award marks fairly for correct method even if minor arithmetic slips.`;
         marksEarned:s.marksEarned+Math.min(fb.marks_awarded,question.marks),
         marksTotal:s.marksTotal+question.marks
       }));
+      // Save to Firestore if signed in
+if(user&&fbDb){
+  try{
+    await fbDb.collection("users").doc(user.uid).collection("attempts").add({
+      course,topic,difficulty,
+      question:question.question,
+      questionObj:question,
+      marks_awarded:Math.min(fb.marks_awarded,question.marks),
+      marks_total:question.marks,
+      overall:fb.overall,
+      answer,
+      timestamp:window.firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }catch(e){console.log("Save failed:",e);}
+}
     }catch(e){setGenError("Marking failed: "+e.message);}
     setCheckLoading(false);
   };
@@ -1569,7 +1584,117 @@ function TimetableTab(){
   );
 }
 
+function ProgressTab({user}){
+  const C=THEMES.dark;
+  const[attempts,setAttempts]=useState([]);
+  const[loading,setLoading]=useState(true);
+  const[selected,setSelected]=useState(null);
 
+  useEffect(()=>{
+    if(!user||!fbDb)return;
+    fbDb.collection("users").doc(user.uid).collection("attempts")
+      .orderBy("timestamp","desc").limit(50)
+      .get().then(snap=>{
+        setAttempts(snap.docs.map(d=>({id:d.id,...d.data()})));
+        setLoading(false);
+      }).catch(()=>setLoading(false));
+  },[user]);
+
+  const card={background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"16px",overflow:"hidden"};
+  const overallColor=o=>o==="correct"?C.accent:o==="partial"?"#F59E0B":"#EF4444";
+  const overallBg=o=>o==="correct"?"rgba(0,200,150,0.10)":o==="partial"?"rgba(245,158,11,0.10)":"rgba(239,68,68,0.10)";
+
+  if(!user) return(
+    <div style={{textAlign:"center",padding:"60px 0",color:C.textMid,fontSize:"15px"}}>Sign in to track your progress.</div>
+  );
+
+  if(loading) return(
+    <div style={{textAlign:"center",padding:"60px 0",color:C.textMid,fontSize:"15px"}}>Loading...</div>
+  );
+
+  if(attempts.length===0) return(
+    <div style={{textAlign:"center",padding:"60px 0",color:C.textMid,fontSize:"15px"}}>No attempts yet. Start practising!</div>
+  );
+
+  const totalAttempted=attempts.length;
+  const totalCorrect=attempts.filter(a=>a.overall==="correct").length;
+  const totalMarks=attempts.reduce((s,a)=>s+a.marks_awarded,0);
+  const totalPossible=attempts.reduce((s,a)=>s+a.marks_total,0);
+
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:"20px"}}>
+
+      {/* Summary row */}
+      <div style={{display:"flex",gap:"12px",flexWrap:"wrap"}}>
+        {[
+          {n:totalAttempted,l:"Attempted"},
+          {n:totalCorrect,l:"Correct"},
+          {n:`${totalMarks}/${totalPossible}`,l:"Marks"},
+          {n:totalAttempted>0?Math.round(totalCorrect/totalAttempted*100)+"%":"—",l:"Accuracy"},
+        ].map(({n,l})=>(
+          <div key={l} style={{flex:1,minWidth:"100px",...card,padding:"16px",textAlign:"center"}}>
+            <div style={{fontSize:"26px",fontWeight:"700",color:"#fff",fontFamily:"Georgia,serif"}}>{n}</div>
+            <div style={{fontSize:"11px",color:C.textLight,marginTop:"4px",letterSpacing:"0.1em",textTransform:"uppercase"}}>{l}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Attempt list */}
+      <div style={card}>
+        <div style={{padding:"14px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",fontSize:"11px",fontWeight:"600",color:C.textLight,letterSpacing:"0.1em",textTransform:"uppercase"}}>
+          Recent Attempts
+        </div>
+        <div style={{display:"flex",flexDirection:"column"}}>
+          {attempts.map((a,i)=>(
+            <div key={a.id}>
+              <div style={{padding:"14px 20px",display:"flex",alignItems:"center",gap:"12px",cursor:"pointer",transition:"background 0.15s",borderBottom:i<attempts.length-1?"1px solid rgba(255,255,255,0.04)":"none"}}
+                onClick={()=>setSelected(selected?.id===a.id?null:a)}
+                onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.03)"}
+                onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:"13px",fontWeight:"600",color:C.text,marginBottom:"3px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+                    {a.course} · {a.topic}
+                  </div>
+                  <div style={{fontSize:"11px",color:C.textLight}}>{a.difficulty} · {a.timestamp?.toDate?.()?.toLocaleDateString("en-AU",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</div>
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:"8px",flexShrink:0}}>
+                  <span style={{fontSize:"13px",fontWeight:"700",color:overallColor(a.overall)}}>{a.marks_awarded}/{a.marks_total}</span>
+                  <span style={{fontSize:"11px",fontWeight:"600",padding:"3px 10px",borderRadius:"999px",background:overallBg(a.overall),color:overallColor(a.overall),border:`1px solid ${overallColor(a.overall)}33`,textTransform:"capitalize"}}>{a.overall}</span>
+                  <span style={{fontSize:"12px",color:C.textLight,transition:"transform 0.15s",display:"inline-block",transform:selected?.id===a.id?"rotate(90deg)":"rotate(0deg)"}}>›</span>
+                </div>
+              </div>
+
+              {/* Expanded view */}
+              {selected?.id===a.id&&(
+                <div style={{padding:"16px 20px 20px",background:"rgba(0,0,0,0.2)",borderBottom:i<attempts.length-1?"1px solid rgba(255,255,255,0.04)":"none",display:"flex",flexDirection:"column",gap:"12px"}}>
+                  <div style={{fontSize:"14px",color:C.text,lineHeight:1.8,fontFamily:"Georgia,serif",padding:"14px 16px",background:"rgba(255,255,255,0.03)",borderRadius:"10px",border:"1px solid rgba(255,255,255,0.06)"}}>
+                    <MathText text={a.question}/>
+                  </div>
+                  <div>
+                    <div style={{fontSize:"11px",color:C.textLight,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"6px"}}>Your answer</div>
+                    <div style={{fontSize:"13px",color:"rgba(255,255,255,0.7)",fontFamily:"'Courier New',monospace",lineHeight:1.7,padding:"12px 14px",background:"rgba(255,255,255,0.03)",borderRadius:"8px",border:"1px solid rgba(255,255,255,0.06)",whiteSpace:"pre-wrap"}}>{a.answer}</div>
+                  </div>
+                  {a.questionObj?.solution_steps&&(
+                    <div>
+                      <div style={{fontSize:"11px",color:C.textLight,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"6px"}}>Solution</div>
+                      <div style={{display:"flex",flexDirection:"column",gap:"6px"}}>
+                        {a.questionObj.solution_steps.map((s,i)=>(
+                          <div key={i} style={{fontSize:"13px",color:"rgba(255,255,255,0.75)",lineHeight:1.7,padding:"8px 12px",background:"rgba(0,200,150,0.05)",borderRadius:"8px",border:"1px solid rgba(0,200,150,0.1)"}}>
+                            <MathText text={s}/>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 export default function App(){
   const[page,setPage]=useState("checker");
   const[calcTab,setCalcTab]=useState("wam");
@@ -1667,7 +1792,7 @@ export default function App(){
           </div>
           {/* Nav links */}
           <div style={{display:"flex",alignItems:"center",gap:"4px"}}>
-            {[{id:"checker",label:"AI Checker"},{id:"calculators",label:"Calculators"},{id:"timetable",label:"Timetable"}].map(({id,label})=>(
+           {[{id:"checker",label:"AI Checker"},{id:"calculators",label:"Calculators"},{id:"timetable",label:"Timetable"},...(user?[{id:"progress",label:"Progress"}]:[])].map(({id,label})=>(
               <button key={id} onClick={()=>setPage(id)} style={{padding:"8px 16px",borderRadius:"8px",border:"none",fontFamily:"inherit",fontSize:"14px",fontWeight:"600",cursor:"pointer",transition:"all 0.15s",
                 background:page===id?T.accentBg:"transparent",
                 color:page===id?T.accentDark:T.textMid}}>
@@ -1722,6 +1847,7 @@ export default function App(){
       {/* ── CONTENT ── */}
       <main style={{maxWidth:page==="timetable"?"960px":"700px",margin:"0 auto",padding:"32px 24px 60px"}}>
         {page==="checker"&&<AICheckerTab user={user}/>}
+{page==="progress"&&<ProgressTab user={user}/>}
         {page==="timetable"&&<TimetableTab/>}
         {page==="calculators"&&(
           <>
