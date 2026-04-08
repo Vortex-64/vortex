@@ -495,7 +495,7 @@ const TOPICS={
 async function callClaude(system,user,maxTokens=1500){
   const res=await fetch("/.netlify/functions/claude",{
     method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({model:"claude-sonnet-4-5",max_tokens:maxTokens,system,messages:[{role:"user",content:user}]})
+    body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:maxTokens,system,messages:[{role:"user",content:user}]})
   });
   if(!res.ok)throw new Error(`API error ${res.status}`);
   const data=await res.json();
@@ -602,7 +602,7 @@ Award marks fairly for correct method even if minor arithmetic slips.`;
       let working=checkWorking;
       if(inputMode==="image"&&checkImageB64){
         const raw=await fetch("/.netlify/functions/claude",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-          model:"claude-sonnet-4-5",max_tokens:800,
+          model:"claude-sonnet-4-6",max_tokens:800,
           messages:[{role:"user",content:[
             {type:"image",source:{type:"base64",media_type:checkImage?.type||"image/jpeg",data:checkImageB64}},
             {type:"text",text:"Transcribe exactly what is written in this image. All maths, working steps. Plain text with line breaks only."}
