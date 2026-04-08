@@ -542,12 +542,13 @@ function parseJSON(raw){
   }
 }
 
-function AICheckerTab(){
-  const[mode,setMode]=useState("practice"); // "practice" | "check"
+function AICheckerTab({user}){
+  const[mode,setMode]=useState("practice");
+  const[courseType,setCourseType]=useState(null); // null | "hsc" | "uni"
   // Practice state
   const[course,setCourse]=useState("Mathematics Advanced");
   const[topic,setTopic]=useState("Calculus");
-  const[difficulty,setDifficulty]=useState("Medium");
+  const[difficulty,setDifficulty]=useState("Level 1");
   const[question,setQuestion]=useState(null);
   const[answer,setAnswer]=useState("");
   const[feedback,setFeedback]=useState(null);
@@ -567,6 +568,21 @@ function AICheckerTab(){
   const[checkImageB64,setCheckImageB64]=useState(null);
   const[inputMode,setInputMode]=useState("type");
   const[visibleHints,setVisibleHints]=useState([]);
+
+  // Typewriter effect
+  const[displayText,setDisplayText]=useState("");
+  const greetingBase=new Date().getHours()<12?"Good Morning":new Date().getHours()<17?"Good Afternoon":"Good Evening";
+  const fullGreeting=user?.displayName?`${greetingBase}, ${user.displayName.split(" ")[0]}.`:`${greetingBase}.`;
+  useEffect(()=>{
+    setDisplayText("");
+    let i=0;
+    const t=setInterval(()=>{
+      setDisplayText(fullGreeting.slice(0,i+1));
+      i++;
+      if(i>=fullGreeting.length)clearInterval(t);
+    },45);
+    return()=>clearInterval(t);
+  },[fullGreeting]);
   const fileRef=useRef(null);
 
   const topics=TOPICS[course]||[];
@@ -574,9 +590,10 @@ function AICheckerTab(){
   const generate=async()=>{
     setGenLoading(true);setQuestion(null);setFeedback(null);setAnswer("");setShowSolution(false);setGenError(null);setVisibleHints([]);
     try{
+      const diffLabel=difficulty==="Level 1"?"easy (straightforward, single-step)":difficulty==="Level 2"?"medium (multi-step, requires some thinking)":"hard (challenging, exam-level, multi-part)";
       const isUni=course.startsWith("University");
       const system=`You are an expert ${isUni?`university undergraduate ${course.replace("University ","")}`:`NSW HSC ${course}`} question generator.
-Generate a UNIQUE original exam-style question on: ${topic}. Difficulty: ${difficulty}. ${isUni?"Pitch it at first or second year university level.":""}
+Generate a UNIQUE original exam-style question on: ${topic}. Difficulty: ${diffLabel}. ${isUni?"Pitch it at first or second year university level.":""}
 IMPORTANT: Wrap ALL mathematical expressions in $ signs for LaTeX. For example: $x^2$, $\\sin(x)$, $\\frac{d}{dx}$, $\\sqrt{x}$.
 If the question involves a function or graph, include a "graph" array with Desmos LaTeX expressions to plot (e.g. ["y=x^2", "y=2x+1"]). If no graph is needed, omit "graph" entirely.
 Return ONLY valid JSON, no markdown, no extra text:
@@ -692,12 +709,32 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
           {/* Center content */}
           {!question&&!genLoading&&(
             <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",padding:"60px 0 120px"}}>
-              <div style={{fontSize:"48px",fontWeight:"400",color:C.text,fontFamily:"Georgia,serif",marginBottom:"16px",letterSpacing:"-0.02em"}}>
-                {new Date().getHours()<12?"Good Morning.":new Date().getHours()<17?"Good Afternoon.":"Good Evening."}
+              <div style={{fontSize:"48px",fontWeight:"400",color:C.text,fontFamily:"Georgia,serif",marginBottom:"16px",letterSpacing:"-0.02em",minHeight:"60px"}}>
+                {displayText}<span style={{opacity:0.4,animation:"blink 1s step-end infinite"}}>|</span>
               </div>
-              <div style={{fontSize:"15px",color:C.textMid,lineHeight:1.7,maxWidth:"340px"}}>
-                Select your course and topic below, then hit the arrow to get a question.
-              </div>
+              <style>{`@keyframes blink{0%,100%{opacity:0.4}50%{opacity:0}}`}</style>
+              {!courseType&&(
+                <div style={{marginTop:"12px",display:"flex",gap:"12px",justifyContent:"center"}}>
+                  <button onClick={()=>{setCourseType("hsc");setCourse("Mathematics Advanced");setTopic(TOPICS["Mathematics Advanced"][0]);}}
+                    style={{padding:"12px 28px",borderRadius:"12px",border:"1px solid rgba(255,255,255,0.12)",background:"rgba(255,255,255,0.06)",color:C.text,fontFamily:"Georgia,serif",fontSize:"16px",cursor:"pointer",transition:"all 0.15s"}}
+                    onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.1)"}
+                    onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"}>
+                    HSC
+                  </button>
+                  <button onClick={()=>{setCourseType("uni");setCourse("University Maths 1");setTopic(TOPICS["University Maths 1"][0]);}}
+                    style={{padding:"12px 28px",borderRadius:"12px",border:"1px solid rgba(255,255,255,0.12)",background:"rgba(255,255,255,0.06)",color:C.text,fontFamily:"Georgia,serif",fontSize:"16px",cursor:"pointer",transition:"all 0.15s"}}
+                    onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.1)"}
+                    onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"}>
+                    University
+                  </button>
+                </div>
+              )}
+              {courseType&&(
+                <div style={{fontSize:"14px",color:C.textMid,lineHeight:1.7,maxWidth:"340px"}}>
+                  Select your course and topic below, then hit the arrow to get a question.
+                  <span onClick={()=>setCourseType(null)} style={{display:"block",marginTop:"8px",fontSize:"12px",color:C.textLight,cursor:"pointer",textDecoration:"underline"}}>Switch to {courseType==="hsc"?"University":"HSC"}</span>
+                </div>
+              )}
             </div>
           )}
 
@@ -724,7 +761,7 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
                 <div style={{padding:"14px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",display:"flex",gap:"8px",flexWrap:"wrap",alignItems:"center"}}>
                   <span style={{fontSize:"11px",fontWeight:"600",padding:"3px 10px",borderRadius:"999px",background:"rgba(0,200,150,0.15)",color:C.accent,border:"1px solid rgba(0,200,150,0.2)"}}>{course.replace("Mathematics ","")}</span>
                   <span style={{fontSize:"11px",fontWeight:"600",padding:"3px 10px",borderRadius:"999px",background:"rgba(255,255,255,0.06)",color:C.textMid,border:"1px solid rgba(255,255,255,0.1)"}}>{topic}</span>
-                  <span style={{fontSize:"11px",fontWeight:"600",padding:"3px 10px",borderRadius:"999px",background:difficulty==="Easy"?"rgba(0,200,150,0.1)":difficulty==="Medium"?"rgba(245,158,11,0.1)":"rgba(248,113,113,0.1)",color:difficulty==="Easy"?C.accent:difficulty==="Medium"?"#F59E0B":"#f87171",border:`1px solid ${difficulty==="Easy"?"rgba(0,200,150,0.2)":difficulty==="Medium"?"rgba(245,158,11,0.2)":"rgba(248,113,113,0.2)"}`}}>{difficulty}</span>
+                  <span style={{fontSize:"11px",fontWeight:"600",padding:"3px 10px",borderRadius:"999px",background:difficulty==="Level 1"?"rgba(0,200,150,0.1)":difficulty==="Level 2"?"rgba(245,158,11,0.1)":"rgba(248,113,113,0.1)",color:difficulty==="Level 1"?C.accent:difficulty==="Level 2"?"#F59E0B":"#f87171",border:`1px solid ${difficulty==="Level 1"?"rgba(0,200,150,0.2)":difficulty==="Level 2"?"rgba(245,158,11,0.2)":"rgba(248,113,113,0.2)"}`}}>{difficulty}</span>
                   <span style={{fontSize:"11px",fontWeight:"600",padding:"3px 10px",borderRadius:"999px",background:"rgba(0,200,150,0.1)",color:C.accent,marginLeft:"auto"}}>{question.marks} mark{question.marks>1?"s":""}</span>
                 </div>
                 <div style={{padding:"20px",fontSize:"16px",color:C.text,lineHeight:1.85,fontFamily:"Georgia,serif"}}>
@@ -819,14 +856,14 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
           )}
 
           {/* Floating bottom bar — Leibniz style */}
-          {!feedback&&(
+          {!feedback&&courseType&&(
             <div style={{position:"sticky",bottom:"-32px",marginTop:"auto",padding:"16px 0 8px",background:"linear-gradient(to top, rgba(15,23,42,1) 60%, rgba(15,23,42,0))"}}>
               <div style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:"16px",padding:"12px 16px",display:"flex",alignItems:"center",gap:"12px",backdropFilter:"blur(12px)"}}>
                 <div style={{display:"flex",flexDirection:"column",flex:1,minWidth:0}}>
                   <div style={{fontSize:"10px",color:C.textLight,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"4px"}}>{course.replace("Mathematics ","Maths ")}</div>
                   <div style={{display:"flex",gap:"8px",alignItems:"center",flexWrap:"wrap"}}>
                     <select value={course} onChange={e=>{setCourse(e.target.value);setTopic(TOPICS[e.target.value]?.[0]||"");}} style={{background:"transparent",border:"none",outline:"none",color:"rgba(255,255,255,0.8)",fontFamily:"Georgia,serif",fontSize:"14px",cursor:"pointer",maxWidth:"160px"}}>
-                      {Object.keys(TOPICS).map(c=><option key={c} value={c} style={{background:"#0f172a"}}>{c}</option>)}
+                      {Object.keys(TOPICS).filter(c=>courseType==="uni"?c.startsWith("University"):!c.startsWith("University")).map(c=><option key={c} value={c} style={{background:"#0f172a"}}>{c}</option>)}
                     </select>
                     <span style={{color:C.textLight}}>·</span>
                     <select value={topic} onChange={e=>setTopic(e.target.value)} style={{background:"transparent",border:"none",outline:"none",color:C.textMid,fontFamily:"Georgia,serif",fontSize:"14px",cursor:"pointer",maxWidth:"160px"}}>
@@ -834,7 +871,7 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
                     </select>
                     <span style={{color:C.textLight}}>·</span>
                     <select value={difficulty} onChange={e=>setDifficulty(e.target.value)} style={{background:"transparent",border:"none",outline:"none",color:C.textMid,fontFamily:"Georgia,serif",fontSize:"14px",cursor:"pointer"}}>
-                      {["Easy","Medium","Hard"].map(d=><option key={d} value={d} style={{background:"#0f172a"}}>{d}</option>)}
+                      {["Level 1","Level 2","Level 3"].map(d=><option key={d} value={d} style={{background:"#0f172a"}}>{d}</option>)}
                     </select>
                   </div>
                 </div>
@@ -1679,7 +1716,7 @@ export default function App(){
 
       {/* ── CONTENT ── */}
       <main style={{maxWidth:page==="timetable"?"960px":"700px",margin:"0 auto",padding:"32px 24px 60px"}}>
-        {page==="checker"&&<AICheckerTab/>}
+        {page==="checker"&&<AICheckerTab user={user}/>}
         {page==="timetable"&&<TimetableTab/>}
         {page==="calculators"&&(
           <>
