@@ -466,18 +466,39 @@ function MathText({text,style={}}){
   return <span ref={ref} style={style}>{text}</span>;
 }
 
-// ─── DESMOS MODAL ─────────────────────────────────────────────────────────────
-function DesmosModal({onClose}){
+// ─── DESMOS GRAPH ─────────────────────────────────────────────────────────────
+function DesmosGraph({expressions=[]}){
+  const ref=useRef(null);
+  const calcRef=useRef(null);
+  useEffect(()=>{
+    const load=()=>{
+      if(!ref.current||!window.Desmos)return;
+      if(calcRef.current)calcRef.current.destroy();
+      calcRef.current=window.Desmos.GraphingCalculator(ref.current,{
+        expressions:false,settingsMenu:false,zoomButtons:true,
+        border:false,lockViewport:false,
+        backgroundColor:"transparent",
+      });
+      expressions.forEach((expr,i)=>{
+        calcRef.current.setExpression({id:`e${i}`,latex:expr,color:i===0?"#00C896":i===1?"#3B82F6":"#F59E0B"});
+      });
+    };
+    if(window.Desmos){load();return;}
+    if(!document.getElementById("desmos-api")){
+      const s=document.createElement("script");
+      s.id="desmos-api";
+      s.src="https://www.desmos.com/api/v1.9/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6";
+      s.onload=load;
+      document.head.appendChild(s);
+    }else{
+      const t=setInterval(()=>{if(window.Desmos){load();clearInterval(t);}},200);
+      return()=>clearInterval(t);
+    }
+    return()=>{if(calcRef.current)calcRef.current.destroy();};
+  },[expressions.join(",")]);
   return(
-    <div style={{position:"fixed",inset:0,zIndex:1000,background:"rgba(0,0,0,0.75)",display:"flex",alignItems:"center",justifyContent:"center"}}
-      onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div style={{width:"min(900px,95vw)",height:"min(620px,90vh)",background:"#1a1a2e",borderRadius:"16px",overflow:"hidden",border:"1px solid rgba(255,255,255,0.12)",display:"flex",flexDirection:"column"}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 18px",borderBottom:"1px solid rgba(255,255,255,0.08)"}}>
-          <div style={{fontSize:"13px",fontWeight:"600",color:C.textMid}}>Desmos Scientific Calculator</div>
-          <button onClick={onClose} style={{background:"none",border:"none",color:C.textLight,fontSize:"20px",cursor:"pointer",lineHeight:1}}>×</button>
-        </div>
-        <iframe src="https://www.desmos.com/scientific" style={{flex:1,border:"none",width:"100%"}} title="Desmos Scientific Calculator"/>
-      </div>
+    <div style={{margin:"12px 20px",borderRadius:"12px",overflow:"hidden",border:"1px solid rgba(255,255,255,0.1)",height:"280px",background:"#1a2744"}}>
+      <div ref={ref} style={{width:"100%",height:"100%"}}/>
     </div>
   );
 }
@@ -490,6 +511,10 @@ const TOPICS={
   "Mathematics Standard 2":["Algebra","Measurement","Financial Mathematics","Statistics","Networks"],
   "Physics":["Kinematics","Dynamics","Waves","Thermodynamics","Electricity","Modern Physics"],
   "Chemistry":["Atomic Structure","Bonding","Stoichiometry","Acids and Bases","Organic Chemistry","Equilibrium"],
+  "University Maths 1":["Limits & Continuity","Differentiation","Integration","Sequences & Series","Vectors","Complex Numbers","Linear Systems","Differential Equations"],
+  "University Maths 2":["Multivariable Calculus","Partial Derivatives","Multiple Integrals","Vector Calculus","Fourier Series","Laplace Transforms","Linear Algebra","Eigenvalues"],
+  "University Physics":["Classical Mechanics","Electrostatics","Magnetism","Maxwell's Equations","Quantum Mechanics","Thermodynamics","Special Relativity","Waves & Optics"],
+  "University Chemistry":["Thermodynamics","Chemical Kinetics","Quantum Chemistry","Electrochemistry","Spectroscopy","Organic Mechanisms","Coordination Chemistry","Statistical Mechanics"],
 };
 
 async function callClaude(system,user,maxTokens=1500){
@@ -541,7 +566,6 @@ function AICheckerTab(){
   const[checkImage,setCheckImage]=useState(null);
   const[checkImageB64,setCheckImageB64]=useState(null);
   const[inputMode,setInputMode]=useState("type");
-  const[showDesmos,setShowDesmos]=useState(false);
   const[visibleHints,setVisibleHints]=useState([]);
   const fileRef=useRef(null);
 
@@ -550,10 +574,13 @@ function AICheckerTab(){
   const generate=async()=>{
     setGenLoading(true);setQuestion(null);setFeedback(null);setAnswer("");setShowSolution(false);setGenError(null);setVisibleHints([]);
     try{
-      const system=`You are an expert NSW HSC ${course} question generator.
-Generate a UNIQUE original exam-style question on: ${topic}. Difficulty: ${difficulty}.
-Return ONLY valid JSON, no markdown, no extra text. Keep all strings concise. Use $ for inline LaTeX:
-{"question":"question text","marks":<int 1-5>,"hints":["hint 1","hint 2"],"solution_steps":["Step 1: ...","Step 2: ...","Step 3: ..."],"final_answer":"answer"}
+      const isUni=course.startsWith("University");
+      const system=`You are an expert ${isUni?`university undergraduate ${course.replace("University ","")}`:`NSW HSC ${course}`} question generator.
+Generate a UNIQUE original exam-style question on: ${topic}. Difficulty: ${difficulty}. ${isUni?"Pitch it at first or second year university level.":""}
+IMPORTANT: Wrap ALL mathematical expressions in $ signs for LaTeX. For example: $x^2$, $\\sin(x)$, $\\frac{d}{dx}$, $\\sqrt{x}$.
+If the question involves a function or graph, include a "graph" array with Desmos LaTeX expressions to plot (e.g. ["y=x^2", "y=2x+1"]). If no graph is needed, omit "graph" entirely.
+Return ONLY valid JSON, no markdown, no extra text:
+{"question":"question text with $math$","marks":<int 1-5>,"graph":["desmos expression 1","desmos expression 2"],"hints":["hint with $math$"],"solution_steps":["Step 1: ... $math$"],"final_answer":"answer with $math$"}
 Make it genuinely challenging and exam-authentic. Ensure the JSON is complete and properly closed.`;
       const raw=await callClaude(system,`Generate a ${difficulty} question on ${topic} for ${course}.`,1800);
       setQuestion(parseJSON(raw));
@@ -570,8 +597,9 @@ The question was (${question.marks} marks): ${question.question}
 Correct solution steps: ${question.solution_steps.join(" | ")}
 Final answer: ${question.final_answer}
 Evaluate the student's working step by step.
+IMPORTANT: Wrap ALL mathematical expressions in $ signs for LaTeX rendering. For example: $x^2$, $\\frac{dy}{dx}$, $e^{2x}(1+2x)$.
 Return ONLY valid JSON, no markdown:
-{"marks_awarded":<int 0 to ${question.marks}>,"overall":"correct"|"partial"|"incorrect","feedback_lines":[{"type":"correct"|"incorrect"|"partial"|"info","text":"feedback"}],"summary":"one encouraging sentence"}
+{"marks_awarded":<int 0 to ${question.marks}>,"overall":"correct"|"partial"|"incorrect","feedback_lines":[{"type":"correct"|"incorrect"|"partial"|"info","text":"feedback with $math$ in LaTeX"}],"summary":"one encouraging sentence"}
 Award marks fairly for correct method even if minor arithmetic slips.`;
       const raw=await callClaude(system,`Student's answer:\n${answer}`);
       const fb=parseJSON(raw);
@@ -702,6 +730,7 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
                 <div style={{padding:"20px",fontSize:"16px",color:C.text,lineHeight:1.85,fontFamily:"Georgia,serif"}}>
                   <MathText text={question.question}/>
                 </div>
+                {question.graph?.length>0&&<DesmosGraph expressions={question.graph}/>}
                 {question.hints?.length>0&&(
                   <div style={{padding:"0 20px 16px",display:"flex",flexDirection:"column",gap:"8px"}}>
                     {question.hints.map((h,i)=>(
@@ -809,11 +838,6 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
                     </select>
                   </div>
                 </div>
-                {/* Desmos button */}
-                <button onClick={()=>setShowDesmos(true)} title="Open calculator"
-                  style={{width:"40px",height:"40px",borderRadius:"10px",border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.05)",color:C.textMid,fontSize:"16px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                  Σ
-                </button>
                 <button onClick={generate} disabled={genLoading}
                   style={{width:"44px",height:"44px",borderRadius:"10px",border:"none",background:genLoading?"rgba(255,255,255,0.1)":C.accent,color:genLoading?"rgba(255,255,255,0.3)":"#fff",fontSize:"20px",cursor:genLoading?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                   {genLoading?"…":"›"}
@@ -822,7 +846,6 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
             </div>
           )}
 
-          {showDesmos&&<DesmosModal onClose={()=>setShowDesmos(false)}/>}
         </div>
       )}
 
