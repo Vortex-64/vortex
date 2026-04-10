@@ -610,8 +610,9 @@ Correct solution steps: ${question.solution_steps.join(" | ")}
 Final answer: ${question.final_answer}
 Evaluate the student's working step by step.
 IMPORTANT: Wrap ALL mathematical expressions in $ signs for LaTeX rendering. For example: $x^2$, $\\frac{dy}{dx}$, $e^{2x}(1+2x)$.
-Return ONLY valid JSON, no markdown:
-{"marks_awarded":<int 0 to ${question.marks}>,"overall":"correct"|"partial"|"incorrect","feedback_lines":[{"type":"correct"|"incorrect"|"partial"|"info","text":"feedback with $math$ in LaTeX"}],"summary":"one encouraging sentence"}
+Return ONLY valid JSON (no markdown, no trailing commas, no comments):
+{"marks_awarded":<int 0 to ${question.marks}>,"overall":"correct","feedback_lines":[{"type":"correct","text":"feedback"}],"summary":"one sentence"}
+The "overall" value must be exactly one of: correct, partial, incorrect.`;
 Award marks fairly for correct method even if minor arithmetic slips.`;
       const raw=await callClaude(system,`Student's answer:\n${answer}`);
       const fb=parseJSON(raw);
@@ -761,9 +762,18 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
                   <span style={{fontSize:"11px",fontWeight:"600",padding:"3px 10px",borderRadius:"999px",background:difficulty==="Level 1"?"rgba(0,200,150,0.1)":difficulty==="Level 2"?"rgba(245,158,11,0.1)":"rgba(248,113,113,0.1)",color:difficulty==="Level 1"?C.accent:difficulty==="Level 2"?"#F59E0B":"#f87171",border:`1px solid ${difficulty==="Level 1"?"rgba(0,200,150,0.2)":difficulty==="Level 2"?"rgba(245,158,11,0.2)":"rgba(248,113,113,0.2)"}`}}>{difficulty}</span>
                   <span style={{fontSize:"11px",fontWeight:"600",padding:"3px 10px",borderRadius:"999px",background:"rgba(0,200,150,0.1)",color:C.accent,marginLeft:"auto"}}>{question.marks} mark{question.marks>1?"s":""}</span>
                 </div>
-                <div style={{padding:"20px",fontSize:"16px",color:C.text,lineHeight:1.85,fontFamily:"Georgia,serif"}}>
-                  <MathText text={question.question}/>
-                </div>
+                {question.parts?.length>0?(
+  question.parts.map((part,i)=>(
+    <div key={i} style={{padding:"16px 20px",borderBottom:i<question.parts.length-1?"1px solid rgba(255,255,255,0.06)":"none"}}>
+      <div style={{fontSize:"11px",fontWeight:"700",color:C.accent,letterSpacing:"0.08em",marginBottom:"8px"}}>Part {["(a)","(b)","(c)"][i]}</div>
+      <div style={{fontSize:"16px",color:C.text,lineHeight:1.85,fontFamily:"Georgia,serif"}}><MathText text={part}/></div>
+    </div>
+  ))
+):(
+  <div style={{padding:"20px",fontSize:"16px",color:C.text,lineHeight:1.85,fontFamily:"Georgia,serif"}}>
+    <MathText text={question.question}/>
+  </div>
+)}
                 {question.graph?.length>0&&<DesmosGraph expressions={question.graph}/>}
                 {question.hints?.length>0&&(
                   <div style={{padding:"0 20px 16px",display:"flex",flexDirection:"column",gap:"8px"}}>
