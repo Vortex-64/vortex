@@ -1866,8 +1866,6 @@ export default function App(){
 const draw=()=>{
   t+=0.008;
   x.clearRect(0,0,W,H);
-
-  // Aurora wave
   for(let wave=0;wave<3;wave++){
     const yBase=H*(0.55+wave*0.06);
     const amp=H*0.07;
@@ -1892,8 +1890,6 @@ const draw=()=>{
     x.fillStyle=grad;
     x.fill();
   }
-
-  // Nebulae
   nebulae.forEach(n=>{
     const g=x.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r);
     g.addColorStop(0,`rgba(${n.color},0.07)`);
@@ -1902,8 +1898,6 @@ const draw=()=>{
     x.fillStyle=g;
     x.beginPath();x.arc(n.x,n.y,n.r,0,Math.PI*2);x.fill();
   });
-
-  // Stars
   layers.forEach(layer=>{
     layer.forEach(s=>{
       s.o+=s.speed*s.dir;
@@ -1916,36 +1910,12 @@ const draw=()=>{
     });
   });
   raf=requestAnimationFrame(draw);
-};;
-    const draw=()=>{
-      x.clearRect(0,0,W,H);
-      nebulae.forEach(n=>{
-        const g=x.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r);
-        g.addColorStop(0,`rgba(${n.color},0.07)`);
-        g.addColorStop(0.5,`rgba(${n.color},0.025)`);
-        g.addColorStop(1,`rgba(${n.color},0)`);
-        x.fillStyle=g;
-        x.beginPath();x.arc(n.x,n.y,n.r,0,Math.PI*2);x.fill();
-      });
-      layers.forEach(layer=>{
-        layer.forEach(s=>{
-          s.o+=s.speed*s.dir;
-          if(s.o>0.8||s.o<0.05)s.dir*=-1;
-          s.px+=s.vx;
-          if(s.px<0)s.px=W;
-          x.beginPath();x.arc(s.px,s.py,s.r,0,Math.PI*2);
-          x.fillStyle=`rgba(200,220,255,${s.o.toFixed(2)})`;
-          x.fill();
-        });
-      });
-      raf=requestAnimationFrame(draw);
-    };
-    draw();
-    const onResize=()=>{W=window.innerWidth;H=window.innerHeight;c.width=W;c.height=H;};
-    window.addEventListener('resize',onResize);
-    return()=>{cancelAnimationFrame(raf);window.removeEventListener('resize',onResize);};
-  },[]);
-
+};
+draw();
+const onResize=()=>{W=window.innerWidth;H=window.innerHeight;c.width=W;c.height=H;};
+window.addEventListener('resize',onResize);
+return()=>{cancelAnimationFrame(raf);window.removeEventListener('resize',onResize);};
+},[]);
   return(
     <>
       <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
