@@ -591,8 +591,8 @@ function AICheckerTab({user}){
 Generate a UNIQUE original exam-style question on: ${topic}. Difficulty: ${diffLabel}. ${isUni?"Pitch it at first or second year university level.":""}
 IMPORTANT: Wrap ALL mathematical expressions in $ signs for LaTeX. For example: $x^2$, $\\sin(x)$, $\\frac{d}{dx}$, $\\sqrt{x}$.
 If the question involves a function or graph, include a "graph" array with Desmos LaTeX expressions to plot (e.g. ["y=x^2", "y=2x+1"]). If no graph is needed, omit "graph" entirely.
-Return ONLY valid JSON, no markdown, no extra text:
-{"question":"question text with $math$","marks":<int 1-5>,"graph":["desmos expression 1","desmos expression 2"],"hints":["hint with $math$"],"solution_steps":["Step 1: ... $math$"],"final_answer":"answer with $math$"}
+Structure the question with up to 3 parts (a), (b), (c) if multi-step — Level 1 can be single part, Level 2 up to 2 parts, Level 3 up to 3 parts. Total marks max 8. Return ONLY valid JSON, no markdown, no extra text:
+{"question":"question text with $math$. (a) part one $math$ (b) part two $math$ (c) part three $math$","marks":<int 1-8>,"parts":["(a) ...","(b) ...","(c) ..."],"graph":["desmos expression 1","desmos expression 2"],"hints":["hint with $math$"],"solution_steps":["Step 1: ... $math$"],"final_answer":"answer with $math$"}
 Make it genuinely challenging and exam-authentic. Ensure the JSON is complete and properly closed. Be concise — keep solution_steps brief, max 4 steps.`;
       const raw=await callClaude(system,`Generate a ${diffLabel} question on ${topic} for ${course}.`,8000);
       setQuestion(parseJSON(raw));
