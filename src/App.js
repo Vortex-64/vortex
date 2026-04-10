@@ -1747,35 +1747,55 @@ export default function App(){
   },[]);
 
   useEffect(()=>{
-    const c=document.getElementById('stars-canvas');
-    if(!c)return;
-    const x=c.getContext('2d');
-    let W=window.innerWidth,H=window.innerHeight;
-    c.width=W;c.height=H;
-    const stars=Array.from({length:180},()=>({
-      px:Math.random()*W,py:Math.random()*H,
-      r:Math.random()*1.4+0.2,
-      o:Math.random()*0.5+0.1,
-      speed:Math.random()*0.006+0.002,
-      dir:Math.random()>0.5?1:-1
-    }));
-    let raf;
-    const draw=()=>{
-      x.clearRect(0,0,W,H);
-      stars.forEach(s=>{
+    useEffect(()=>{
+  const c=document.getElementById('stars-canvas');
+  if(!c)return;
+  const x=c.getContext('2d');
+  let W=window.innerWidth,H=window.innerHeight;
+  c.width=W;c.height=H;
+
+  const layers=[
+    Array.from({length:120},()=>({px:Math.random()*W,py:Math.random()*H,r:Math.random()*0.8+0.1,o:Math.random()*0.4+0.1,speed:Math.random()*0.003+0.001,dir:Math.random()>0.5?1:-1,vx:-0.05})),
+    Array.from({length:60},()=>({px:Math.random()*W,py:Math.random()*H,r:Math.random()*1.2+0.4,o:Math.random()*0.5+0.15,speed:Math.random()*0.005+0.002,dir:Math.random()>0.5?1:-1,vx:-0.12})),
+    Array.from({length:20},()=>({px:Math.random()*W,py:Math.random()*H,r:Math.random()*1.8+0.8,o:Math.random()*0.6+0.2,speed:Math.random()*0.007+0.003,dir:Math.random()>0.5?1:-1,vx:-0.2})),
+  ];
+
+  const nebulae=[
+    {x:W*0.15,y:H*0.3,r:300,color:"59,130,246"},
+    {x:W*0.82,y:H*0.18,r:240,color:"139,92,246"},
+    {x:W*0.6,y:H*0.75,r:280,color:"0,200,150"},
+    {x:W*0.25,y:H*0.82,r:200,color:"236,72,153"},
+  ];
+
+  let raf;
+  const draw=()=>{
+    x.clearRect(0,0,W,H);
+    nebulae.forEach(n=>{
+      const g=x.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r);
+      g.addColorStop(0,`rgba(${n.color},0.07)`);
+      g.addColorStop(0.5,`rgba(${n.color},0.025)`);
+      g.addColorStop(1,`rgba(${n.color},0)`);
+      x.fillStyle=g;
+      x.beginPath();x.arc(n.x,n.y,n.r,0,Math.PI*2);x.fill();
+    });
+    layers.forEach(layer=>{
+      layer.forEach(s=>{
         s.o+=s.speed*s.dir;
-        if(s.o>0.75||s.o<0.08)s.dir*=-1;
+        if(s.o>0.8||s.o<0.05)s.dir*=-1;
+        s.px+=s.vx;
+        if(s.px<0)s.px=W;
         x.beginPath();x.arc(s.px,s.py,s.r,0,Math.PI*2);
-        x.fillStyle=`rgba(160,200,255,${s.o.toFixed(2)})`;
+        x.fillStyle=`rgba(200,220,255,${s.o.toFixed(2)})`;
         x.fill();
       });
-      raf=requestAnimationFrame(draw);
-    };
-    draw();
-    const onResize=()=>{W=window.innerWidth;H=window.innerHeight;c.width=W;c.height=H;};
-    window.addEventListener('resize',onResize);
-    return()=>{cancelAnimationFrame(raf);window.removeEventListener('resize',onResize);};
-  },[]);
+    });
+    raf=requestAnimationFrame(draw);
+  };
+  draw();
+  const onResize=()=>{W=window.innerWidth;H=window.innerHeight;c.width=W;c.height=H;};
+  window.addEventListener('resize',onResize);
+  return()=>{cancelAnimationFrame(raf);window.removeEventListener('resize',onResize);};
+},[]);
 
   return(
     <>
