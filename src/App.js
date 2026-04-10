@@ -2082,50 +2082,6 @@ return()=>{cancelAnimationFrame(raf);window.removeEventListener('resize',onResiz
       )}
 
       <main style={{maxWidth:page==="timetable"?"960px":"700px",margin:"0 auto",padding:"32px 24px 60px"}}>
-function HomePage({user,onStart}){
-  const C=THEMES.dark;
-  const greetingBase=new Date().getHours()<12?"Good Morning":new Date().getHours()<17?"Good Afternoon":"Good Evening";
-  const greeting=user?.displayName?`${greetingBase}, ${user.displayName.split(" ")[0]}.`:`${greetingBase}.`;
-  const[displayed,setDisplayed]=useState("");
-  useEffect(()=>{
-    setDisplayed("");
-    let i=0;
-    const t=setInterval(()=>{setDisplayed(greeting.slice(0,i+1));i++;if(i>=greeting.length)clearInterval(t);},45);
-    return()=>clearInterval(t);
-  },[greeting]);
-
-  return(
-    <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-      <div style={{textAlign:"center",padding:"100px 24px 60px",maxWidth:"700px",width:"100%"}}>
-        <div style={{fontSize:"clamp(40px,6vw,64px)",fontWeight:"400",color:C.text,fontFamily:"Georgia,serif",letterSpacing:"-0.02em",marginBottom:"16px",minHeight:"70px"}}>
-          {displayed}<span style={{opacity:0.4,animation:"blink 1s step-end infinite"}}>|</span>
-        </div>
-        <style>{`@keyframes blink{0%,100%{opacity:0.4}50%{opacity:0}}`}</style>
-        <p style={{fontSize:"16px",color:C.textMid,lineHeight:1.7,marginBottom:"36px",maxWidth:"440px",margin:"0 auto 36px"}}>
-          AI-powered practice questions, instant marking, and every calculator a student needs.
-        </p>
-        <div style={{display:"flex",gap:"12px",justifyContent:"center",flexWrap:"wrap"}}>
-          <button onClick={onStart}
-            style={{padding:"13px 32px",borderRadius:"10px",border:"none",background:C.accent,color:"#fff",fontSize:"15px",fontWeight:"700",cursor:"pointer",fontFamily:"inherit"}}>
-            Start practising →
-          </button>
-          <button onClick={onStart}
-            style={{padding:"13px 32px",borderRadius:"10px",border:"1px solid rgba(255,255,255,0.12)",background:"rgba(255,255,255,0.05)",color:C.text,fontSize:"15px",fontWeight:"600",cursor:"pointer",fontFamily:"inherit"}}>
-            Check my working
-          </button>
-        </div>
-      </div>
-      <div style={{width:"100%",maxWidth:"960px",padding:"0 24px 80px"}}>
-        <div style={{textAlign:"center",marginBottom:"64px"}}>
-          <p style={{fontSize:"clamp(22px,3vw,32px)",fontWeight:"700",color:"rgba(255,255,255,0.9)",fontFamily:"Georgia,serif",letterSpacing:"-0.02em",whiteSpace:"nowrap"}}>
-            Study smarter. <span style={{color:"rgba(255,255,255,0.3)"}}>Not just harder.</span>
-          </p>
-        </div>
-        <HomeFeatures/>
-      </div>
-    </div>
-  );
-}
 {page==="home"&&<HomePage user={user} onStart={()=>setPage("checker")}/>}
         {page==="checker"&&<AICheckerTab user={user}/>}
         {page==="dashboard"&&<DashboardTab user={user}/>}
