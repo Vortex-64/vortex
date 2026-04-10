@@ -731,6 +731,7 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
                   </button>
                 </div>
               )}
+<HomeFeatures/>
               {courseType&&(
                 <div style={{fontSize:"14px",color:C.textMid,lineHeight:1.7,maxWidth:"340px"}}>
                   Select your course and topic below, then hit the arrow to get a question.
@@ -1739,6 +1740,62 @@ function DashboardTab({user}){
 }
 
 // ─── APP ──────────────────────────────────────────────────────────────────────
+function HomeFeatures(){
+  const C=THEMES.dark;
+  const features=[
+    {fig:"FIG 0.1",title:"AI-powered questions",desc:"Generate unique exam-style questions across HSC and university subjects, marked instantly with step-by-step feedback.",icon:(
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <rect x="10" y="10" width="60" height="60" rx="8" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" fill="none"/>
+        <rect x="20" y="20" width="40" height="6" rx="2" stroke="rgba(255,255,255,0.2)" strokeWidth="1" fill="none"/>
+        <rect x="20" y="32" width="28" height="6" rx="2" stroke="rgba(255,255,255,0.2)" strokeWidth="1" fill="none"/>
+        <rect x="20" y="44" width="34" height="6" rx="2" stroke="rgba(255,255,255,0.2)" strokeWidth="1" fill="none"/>
+        <circle cx="58" cy="58" r="10" stroke="rgba(0,200,150,0.4)" strokeWidth="1.5" fill="none"/>
+        <path d="M54 58l3 3 6-6" stroke="rgba(0,200,150,0.6)" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    )},
+    {fig:"FIG 0.2",title:"Built for students",desc:"WAM calculator, HSC mark estimator, and a timetable planner — every tool a UNSW or HSC student needs in one place.",icon:(
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <rect x="15" y="15" width="22" height="22" rx="4" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" fill="none"/>
+        <rect x="43" y="15" width="22" height="22" rx="4" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" fill="none"/>
+        <rect x="15" y="43" width="22" height="22" rx="4" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" fill="none"/>
+        <rect x="43" y="43" width="22" height="22" rx="4" stroke="rgba(99,102,241,0.4)" strokeWidth="1.5" fill="none"/>
+        <path d="M49 54h10M54 49v10" stroke="rgba(99,102,241,0.6)" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    )},
+    {fig:"FIG 0.3",title:"Track your progress",desc:"Every attempt is saved. See your accuracy, marks earned, and study streaks — all synced to your account.",icon:(
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <rect x="10" y="10" width="60" height="60" rx="8" stroke="rgba(255,255,255,0.1)" strokeWidth="1" fill="none"/>
+        <path d="M20 55 L32 38 L44 45 L56 25" stroke="rgba(0,200,150,0.5)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+        <circle cx="20" cy="55" r="2.5" fill="rgba(0,200,150,0.4)"/>
+        <circle cx="32" cy="38" r="2.5" fill="rgba(0,200,150,0.4)"/>
+        <circle cx="44" cy="45" r="2.5" fill="rgba(0,200,150,0.4)"/>
+        <circle cx="56" cy="25" r="2.5" fill="rgba(0,200,150,0.7)"/>
+      </svg>
+    )},
+  ];
+  return(
+    <div style={{marginTop:"80px",paddingTop:"60px",borderTop:"1px solid rgba(255,255,255,0.06)"}}>
+      <p style={{fontSize:"26px",fontWeight:"700",color:"rgba(255,255,255,0.9)",fontFamily:"Georgia,serif",letterSpacing:"-0.02em",marginBottom:"8px",lineHeight:1.3}}>
+        Study smarter. <span style={{color:"rgba(255,255,255,0.35)"}}>Not just harder.</span>
+      </p>
+      <p style={{fontSize:"14px",color:"rgba(255,255,255,0.35)",marginBottom:"48px"}}>Everything you need to practise, check, and track — in one place.</p>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"1px",background:"rgba(255,255,255,0.06)",borderRadius:"16px",overflow:"hidden"}}>
+        {features.map((f,i)=>(
+          <div key={i} style={{background:"#0a1020",padding:"32px 28px",display:"flex",flexDirection:"column",gap:"24px",transition:"background 0.2s"}}
+            onMouseEnter={e=>e.currentTarget.style.background="#0d1528"}
+            onMouseLeave={e=>e.currentTarget.style.background="#0a1020"}>
+            <div style={{fontSize:"10px",color:"rgba(255,255,255,0.2)",letterSpacing:"0.15em",fontFamily:"monospace"}}>{f.fig}</div>
+            <div style={{opacity:0.8}}>{f.icon}</div>
+            <div>
+              <div style={{fontSize:"14px",fontWeight:"700",color:"rgba(255,255,255,0.85)",marginBottom:"8px"}}>{f.title}</div>
+              <div style={{fontSize:"13px",color:"rgba(255,255,255,0.35)",lineHeight:1.7}}>{f.desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 export default function App(){
   const[page,setPage]=useState("checker");
   const[calcTab,setCalcTab]=useState("wam");
@@ -1795,17 +1852,71 @@ export default function App(){
     let W=window.innerWidth,H=window.innerHeight;
     c.width=W;c.height=H;
     const layers=[
-      Array.from({length:120},()=>({px:Math.random()*W,py:Math.random()*H,r:Math.random()*0.8+0.1,o:Math.random()*0.4+0.1,speed:Math.random()*0.003+0.001,dir:Math.random()>0.5?1:-1,vx:-0.05})),
-      Array.from({length:60},()=>({px:Math.random()*W,py:Math.random()*H,r:Math.random()*1.2+0.4,o:Math.random()*0.5+0.15,speed:Math.random()*0.005+0.002,dir:Math.random()>0.5?1:-1,vx:-0.12})),
-      Array.from({length:20},()=>({px:Math.random()*W,py:Math.random()*H,r:Math.random()*1.8+0.8,o:Math.random()*0.6+0.2,speed:Math.random()*0.007+0.003,dir:Math.random()>0.5?1:-1,vx:-0.2})),
-    ];
+  Array.from({length:120},()=>({px:Math.random()*W,py:Math.random()*H,r:Math.random()*0.8+0.1,o:Math.random()*0.4+0.1,speed:Math.random()*0.008+0.003,dir:Math.random()>0.5?1:-1,vx:-0.4})),
+  Array.from({length:60},()=>({px:Math.random()*W,py:Math.random()*H,r:Math.random()*1.2+0.4,o:Math.random()*0.5+0.15,speed:Math.random()*0.010+0.005,dir:Math.random()>0.5?1:-1,vx:-0.9})),
+  Array.from({length:20},()=>({px:Math.random()*W,py:Math.random()*H,r:Math.random()*1.8+0.8,o:Math.random()*0.6+0.2,speed:Math.random()*0.012+0.006,dir:Math.random()>0.5?1:-1,vx:-1.6})),
+];
     const nebulae=[
       {x:W*0.15,y:H*0.3,r:300,color:"59,130,246"},
       {x:W*0.82,y:H*0.18,r:240,color:"139,92,246"},
       {x:W*0.6,y:H*0.75,r:280,color:"0,200,150"},
       {x:W*0.25,y:H*0.82,r:200,color:"236,72,153"},
     ];
-    let raf;
+    let raf,t=0;
+const draw=()=>{
+  t+=0.008;
+  x.clearRect(0,0,W,H);
+
+  // Aurora wave
+  for(let wave=0;wave<3;wave++){
+    const yBase=H*(0.55+wave*0.06);
+    const amp=H*0.07;
+    const freq=0.0018+wave*0.0004;
+    const phase=t*(0.4+wave*0.15);
+    const colors=[
+      ["rgba(99,102,241,","rgba(139,92,246,"],
+      ["rgba(0,200,150,","rgba(59,130,246,"],
+      ["rgba(236,72,153,","rgba(99,102,241,"],
+    ][wave];
+    x.beginPath();
+    x.moveTo(0,H);
+    for(let px=0;px<=W;px+=4){
+      const py=yBase+Math.sin(px*freq+phase)*amp+Math.sin(px*freq*1.7+phase*1.3)*amp*0.4;
+      px===0?x.moveTo(px,py):x.lineTo(px,py);
+    }
+    x.lineTo(W,H);x.lineTo(0,H);x.closePath();
+    const grad=x.createLinearGradient(0,yBase-amp,0,yBase+amp*2);
+    grad.addColorStop(0,colors[0]+"0.18)");
+    grad.addColorStop(0.5,colors[1]+"0.10)");
+    grad.addColorStop(1,colors[0]+"0)");
+    x.fillStyle=grad;
+    x.fill();
+  }
+
+  // Nebulae
+  nebulae.forEach(n=>{
+    const g=x.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r);
+    g.addColorStop(0,`rgba(${n.color},0.07)`);
+    g.addColorStop(0.5,`rgba(${n.color},0.025)`);
+    g.addColorStop(1,`rgba(${n.color},0)`);
+    x.fillStyle=g;
+    x.beginPath();x.arc(n.x,n.y,n.r,0,Math.PI*2);x.fill();
+  });
+
+  // Stars
+  layers.forEach(layer=>{
+    layer.forEach(s=>{
+      s.o+=s.speed*s.dir;
+      if(s.o>0.8||s.o<0.05)s.dir*=-1;
+      s.px+=s.vx;
+      if(s.px<0)s.px=W;
+      x.beginPath();x.arc(s.px,s.py,s.r,0,Math.PI*2);
+      x.fillStyle=`rgba(200,220,255,${s.o.toFixed(2)})`;
+      x.fill();
+    });
+  });
+  raf=requestAnimationFrame(draw);
+};;
     const draw=()=>{
       x.clearRect(0,0,W,H);
       nebulae.forEach(n=>{
