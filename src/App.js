@@ -1740,29 +1740,6 @@ function DashboardTab({user}){
 }
 
 // ─── APP ──────────────────────────────────────────────────────────────────────
-  return(
-    <div style={{marginTop:"80px",paddingTop:"60px",borderTop:"1px solid rgba(255,255,255,0.06)"}}>
-      <p style={{fontSize:"26px",fontWeight:"700",color:"rgba(255,255,255,0.9)",fontFamily:"Georgia,serif",letterSpacing:"-0.02em",marginBottom:"8px",lineHeight:1.3}}>
-        Study smarter. <span style={{color:"rgba(255,255,255,0.35)"}}>Not just harder.</span>
-      </p>
-      <p style={{fontSize:"14px",color:"rgba(255,255,255,0.35)",marginBottom:"48px"}}>Everything you need to practise, check, and track — in one place.</p>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"1px",background:"rgba(255,255,255,0.06)",borderRadius:"16px",overflow:"hidden"}}>
-        {features.map((f,i)=>(
-          <div key={i} style={{background:"#0a1020",padding:"32px 28px",display:"flex",flexDirection:"column",gap:"24px",transition:"background 0.2s"}}
-            onMouseEnter={e=>e.currentTarget.style.background="#0d1528"}
-            onMouseLeave={e=>e.currentTarget.style.background="#0a1020"}>
-            <div style={{fontSize:"10px",color:"rgba(255,255,255,0.2)",letterSpacing:"0.15em",fontFamily:"monospace"}}>{f.fig}</div>
-            <div style={{opacity:0.8}}>{f.icon}</div>
-            <div>
-              <div style={{fontSize:"14px",fontWeight:"700",color:"rgba(255,255,255,0.85)",marginBottom:"8px"}}>{f.title}</div>
-              <div style={{fontSize:"13px",color:"rgba(255,255,255,0.35)",lineHeight:1.7}}>{f.desc}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 function HomeFeatures(){
   const C=THEMES.dark;
   const[activeSection,setActiveSection]=useState(0);
