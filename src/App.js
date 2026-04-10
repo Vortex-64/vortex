@@ -1695,6 +1695,153 @@ function ProgressTab({user}){
     </div>
   );
 }
+function DashboardTab({user}){
+  const C=THEMES.dark;
+  const[attempts,setAttempts]=useState([]);
+  const[loading,setLoading]=useState(true);
+
+  useEffect(()=>{
+    if(!user||!fbDb){setLoading(false);return;}
+    fbDb.collection("users").doc(user.uid).collection("attempts")
+      .orderBy("timestamp","desc").limit(200)
+      .get().then(snap=>{
+        setAttempts(snap.docs.map(d=>({id:d.id,...d.data()})));
+        setLoading(false);
+      }).catch(()=>setLoading(false));
+  },[user]);
+
+  if(!user)return<div style={{textAlign:"center",padding:"80px 0",color:C.textMid,fontSize:"15px"}}>Sign in to see your dashboard.</div>;
+  if(loading)return<div style={{textAlign:"center",padding:"80px 0",color:C.textMid}}>Loading...</div>;
+
+  const activityMap={};
+  attempts.forEach(a=>{
+    if(!a.timestamp?.toDate)return;
+    const d=a.timestamp.toDate();
+    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    activityMap[key]=(activityMap[key]||0)+1;
+  });
+
+  const today=new Date();
+  const weeks=[];
+  const start=new Date(today);
+  start.setDate(start.getDate()-15*7-start.getDay());
+  for(let w=0;w<16;w++){
+    const week=[];
+    for(let d=0;d<7;d++){
+      const date=new Date(start);
+      date.setDate(start.getDate()+w*7+d);
+      const key=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+      week.push({date,key,count:activityMap[key]||0});
+    }
+    weeks.push(week);
+  }
+
+  const maxCount=Math.max(1,...Object.values(activityMap));
+  const getColor=count=>{
+    if(count===0)return"rgba(255,255,255,0.05)";
+    const i=Math.min(1,count/Math.max(3,maxCount*0.5));
+    if(i<0.33)return"rgba(0,200,150,0.3)";
+    if(i<0.66)return"rgba(0,200,150,0.6)";
+    return"rgba(0,200,150,0.95)";
+  };
+
+  const totalAttempted=attempts.length;
+  const totalCorrect=attempts.filter(a=>a.overall==="correct").length;
+  const totalMarks=attempts.reduce((s,a)=>s+(a.marks_awarded||0),0);
+  const totalPossible=attempts.reduce((s,a)=>s+(a.marks_total||0),0);
+  const accuracy=totalAttempted>0?Math.round(totalCorrect/totalAttempted*100):0;
+
+  const monthLabels=[];
+  weeks.forEach((week,wi)=>{
+    const first=week.find(d=>d.date.getDate()<=7);
+    if(first&&wi>0)monthLabels.push({wi,label:first.date.toLocaleString('default',{month:'short'})});
+  });
+
+  const dc={background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"16px",overflow:"hidden"};
+
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:"20px"}}>
+      <div>
+        <h2 style={{fontSize:"28px",fontWeight:"700",color:"#fff",fontFamily:"Georgia,serif",letterSpacing:"-0.02em",marginBottom:"4px"}}>
+          {user.displayName?`Welcome back, ${user.displayName.split(" ")[0]}.`:"Dashboard"}
+        </h2>
+        <p style={{fontSize:"14px",color:C.textMid}}>Your study activity at a glance</p>
+      </div>
+
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"12px"}}>
+        {[
+          {n:totalAttempted,l:"Questions",sub:"attempted"},
+          {n:totalCorrect,l:"Correct",sub:"answers"},
+          {n:totalPossible>0?`${totalMarks}/${totalPossible}`:"—",l:"Marks",sub:"earned"},
+          {n:accuracy+"%",l:"Accuracy",sub:"overall"},
+        ].map(({n,l,sub})=>(
+          <div key={l} style={{...dc,padding:"20px"}}>
+            <div style={{fontSize:"11px",color:C.textLight,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"8px",fontWeight:"600"}}>{l}</div>
+            <div style={{fontSize:"30px",fontWeight:"700",color:"#fff",fontFamily:"Georgia,serif",lineHeight:1}}>{n}</div>
+            <div style={{fontSize:"11px",color:C.textLight,marginTop:"6px"}}>{sub}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={dc}>
+        <div style={{padding:"16px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{fontSize:"13px",fontWeight:"600",color:C.text}}>Activity</div>
+          <div style={{fontSize:"11px",color:C.textLight}}>{totalAttempted} questions · last 4 months</div>
+        </div>
+        <div style={{padding:"16px 20px",overflowX:"auto"}}>
+          <div style={{display:"grid",gridTemplateColumns:`18px repeat(16,1fr)`,gap:"3px",marginBottom:"4px"}}>
+            <div/>
+            {weeks.map((week,wi)=>{
+              const label=monthLabels.find(m=>m.wi===wi);
+              return<div key={wi} style={{fontSize:"9px",color:C.textLight}}>{label?.label||""}</div>;
+            })}
+          </div>
+          {[0,1,2,3,4,5,6].map(dayIdx=>(
+            <div key={dayIdx} style={{display:"grid",gridTemplateColumns:`18px repeat(16,1fr)`,gap:"3px",marginBottom:"3px"}}>
+              <div style={{fontSize:"9px",color:C.textLight,lineHeight:"12px",textAlign:"right",paddingRight:"4px"}}>
+                {[1,3,5].includes(dayIdx)?["S","M","T","W","T","F","S"][dayIdx]:""}
+              </div>
+              {weeks.map((week,wi)=>{
+                const cell=week[dayIdx];
+                const isFuture=cell.date>today;
+                return(
+                  <div key={wi}
+                    title={cell.count>0?`${cell.key}: ${cell.count} question${cell.count>1?"s":""}`:cell.key}
+                    style={{width:"100%",aspectRatio:"1",borderRadius:"2px",background:isFuture?"transparent":getColor(cell.count),cursor:cell.count>0?"pointer":"default"}}/>
+                );
+              })}
+            </div>
+          ))}
+          <div style={{display:"flex",alignItems:"center",gap:"6px",marginTop:"12px",justifyContent:"flex-end"}}>
+            <span style={{fontSize:"10px",color:C.textLight}}>Less</span>
+            {["rgba(255,255,255,0.05)","rgba(0,200,150,0.3)","rgba(0,200,150,0.6)","rgba(0,200,150,0.95)"].map((col,i)=>(
+              <div key={i} style={{width:"10px",height:"10px",borderRadius:"2px",background:col}}/>
+            ))}
+            <span style={{fontSize:"10px",color:C.textLight}}>More</span>
+          </div>
+        </div>
+      </div>
+
+      {attempts.length>0&&(
+        <div style={dc}>
+          <div style={{padding:"14px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",fontSize:"11px",fontWeight:"600",color:C.textLight,letterSpacing:"0.1em",textTransform:"uppercase"}}>Recent Activity</div>
+          {attempts.slice(0,8).map((a,i)=>{
+            const col=a.overall==="correct"?"#00C896":a.overall==="partial"?"#F59E0B":"#EF4444";
+            const ts=a.timestamp?.toDate?.();
+            return(
+              <div key={a.id} style={{display:"flex",alignItems:"center",gap:"12px",padding:"12px 20px",borderBottom:i<Math.min(7,attempts.length-1)?"1px solid rgba(255,255,255,0.04)":"none"}}>
+                <div style={{width:"6px",height:"6px",borderRadius:"50%",background:col,flexShrink:0}}/>
+                <div style={{flex:1,fontSize:"13px",color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.course} · {a.topic}</div>
+                <div style={{fontSize:"12px",fontWeight:"600",color:col}}>{a.marks_awarded}/{a.marks_total}</div>
+                <div style={{fontSize:"11px",color:C.textLight,flexShrink:0}}>{ts?ts.toLocaleDateString("en-AU",{day:"numeric",month:"short"}):""}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 export default function App(){
   const[page,setPage]=useState("checker");
   const[calcTab,setCalcTab]=useState("wam");
@@ -1812,7 +1959,7 @@ export default function App(){
           </div>
           {/* Nav links */}
           <div style={{display:"flex",alignItems:"center",gap:"4px"}}>
-           {[{id:"checker",label:"AI Checker"},{id:"calculators",label:"Calculators"},{id:"timetable",label:"Timetable"},...(user?[{id:"progress",label:"Progress"}]:[])].map(({id,label})=>(
+           {[{id:"checker",label:"AI Checker"},{id:"calculators",label:"Calculators"},{id:"timetable",label:"Timetable"},...(user?[{id:"dashboard",label:"Dashboard"},{id:"progress",label:"Progress"}]:[])].map(({id,label})=>(
               <button key={id} onClick={()=>setPage(id)} style={{padding:"8px 16px",borderRadius:"8px",border:"none",fontFamily:"inherit",fontSize:"14px",fontWeight:"600",cursor:"pointer",transition:"all 0.15s",
                 background:page===id?T.accentBg:"transparent",
                 color:page===id?T.accentDark:T.textMid}}>
@@ -1828,10 +1975,14 @@ export default function App(){
                 <button onClick={signOut} style={{padding:"6px 10px",borderRadius:"8px",border:`1px solid ${T.border}`,background:"transparent",color:T.textMid,fontSize:"12px",fontWeight:"600",cursor:"pointer",fontFamily:"inherit"}}>Sign out</button>
               </div>
             ):(
-              <button onClick={signInWithGoogle} style={{marginLeft:"4px",display:"flex",alignItems:"center",gap:"7px",padding:"7px 13px",borderRadius:"8px",border:`1px solid ${T.border}`,background:T.surface,color:T.text,fontSize:"13px",fontWeight:"600",cursor:"pointer",fontFamily:"inherit"}}>
-                <svg width="15" height="15" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-                Sign in
-              </button>
+              <div style={{display:"flex",alignItems:"center",gap:"6px",marginLeft:"4px"}}>
+  <button onClick={signInWithGoogle} style={{display:"flex",alignItems:"center",gap:"7px",padding:"7px 13px",borderRadius:"8px",border:`1px solid ${T.border}`,background:"transparent",color:T.textMid,fontSize:"13px",fontWeight:"600",cursor:"pointer",fontFamily:"inherit"}}>
+    Sign in
+  </button>
+  <button onClick={signInWithGoogle} style={{display:"flex",alignItems:"center",gap:"7px",padding:"7px 13px",borderRadius:"8px",border:"none",background:T.accent,color:"#fff",fontSize:"13px",fontWeight:"600",cursor:"pointer",fontFamily:"inherit"}}>
+    Sign up
+  </button>
+</div>
             ))}
           </div>
         </div>
@@ -1867,6 +2018,7 @@ export default function App(){
       {/* ── CONTENT ── */}
       <main style={{maxWidth:page==="timetable"?"960px":"700px",margin:"0 auto",padding:"32px 24px 60px"}}>
         {page==="checker"&&<AICheckerTab user={user}/>}
+{page==="dashboard"&&<DashboardTab user={user}/>}
 {page==="progress"&&<ProgressTab user={user}/>}
         {page==="timetable"&&<TimetableTab/>}
         {page==="calculators"&&(
