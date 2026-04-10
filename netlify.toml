@@ -5,11 +5,9 @@
 
 [build.environment]
   ANTHROPIC_API_KEY = ""
+  SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-[context.production]
-  SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES = "AIzaSyBULPLaPLq9o73TlMzPuoyuQg1WVyrONrE"
