@@ -1796,6 +1796,160 @@ function HomeFeatures(){
     </div>
   );
 }
+function HomeFeatures(){
+  const C=THEMES.dark;
+  const[activeSection,setActiveSection]=useState(0);
+  const sectionRefs=[useRef(null),useRef(null),useRef(null)];
+  const[visible,setVisible]=useState([false,false,false]);
+
+  useEffect(()=>{
+    const observers=sectionRefs.map((ref,i)=>{
+      const obs=new IntersectionObserver(([entry])=>{
+        if(entry.isIntersecting){
+          setVisible(v=>{const n=[...v];n[i]=true;return n;});
+          setActiveSection(i);
+        }
+      },{threshold:0.3});
+      if(ref.current)obs.observe(ref.current);
+      return obs;
+    });
+    return()=>observers.forEach(o=>o.disconnect());
+  },[]);
+
+  const sections=[
+    {
+      num:"1.0",
+      label:"Practice",
+      title:"AI questions that actually challenge you.",
+      sub:"Generate unique exam-style questions across every HSC and university topic. Get instant marking with step-by-step feedback.",
+      color:"#00C896",
+      ui:(
+        <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"16px",overflow:"hidden",fontFamily:"inherit"}}>
+          <div style={{padding:"12px 16px",borderBottom:"1px solid rgba(255,255,255,0.06)",display:"flex",gap:"8px",alignItems:"center"}}>
+            <span style={{fontSize:"10px",fontWeight:"700",padding:"2px 8px",borderRadius:"999px",background:"rgba(0,200,150,0.15)",color:"#00C896",border:"1px solid rgba(0,200,150,0.2)"}}>Maths Advanced</span>
+            <span style={{fontSize:"10px",color:"rgba(255,255,255,0.3)"}}>·</span>
+            <span style={{fontSize:"10px",color:"rgba(255,255,255,0.4)"}}>Calculus</span>
+            <span style={{fontSize:"10px",color:"rgba(255,255,255,0.3)"}}>·</span>
+            <span style={{fontSize:"10px",fontWeight:"700",padding:"2px 8px",borderRadius:"999px",background:"rgba(248,113,113,0.1)",color:"#f87171"}}>Level 3</span>
+            <span style={{marginLeft:"auto",fontSize:"10px",fontWeight:"600",color:"#00C896"}}>4 marks</span>
+          </div>
+          <div style={{padding:"20px",fontSize:"14px",color:"rgba(255,255,255,0.85)",lineHeight:1.8,fontFamily:"Georgia,serif"}}>
+            Let <em>f(x) = x³ − 6x² + 9x + 2</em>. Find all values of <em>x</em> for which <em>f(x)</em> is concave down, and determine the coordinates of any inflection points.
+          </div>
+          <div style={{padding:"0 20px 16px",display:"flex",gap:"8px"}}>
+            <div style={{padding:"5px 12px",borderRadius:"7px",border:"1px solid rgba(255,255,255,0.1)",fontSize:"11px",color:"rgba(255,255,255,0.35)",cursor:"pointer"}}>Show Hint 1</div>
+            <div style={{padding:"5px 12px",borderRadius:"7px",border:"1px solid rgba(255,255,255,0.1)",fontSize:"11px",color:"rgba(255,255,255,0.35)",cursor:"pointer"}}>Show Hint 2</div>
+          </div>
+          <div style={{margin:"0 16px 16px",padding:"14px",background:"rgba(0,200,150,0.06)",border:"1px solid rgba(0,200,150,0.15)",borderRadius:"10px"}}>
+            <div style={{fontSize:"10px",color:"rgba(255,255,255,0.3)",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"6px"}}>Your working</div>
+            <div style={{fontSize:"12px",color:"rgba(255,255,255,0.5)",fontFamily:"'Courier New',monospace",lineHeight:1.8}}>
+              f'(x) = 3x² − 12x + 9<br/>
+              f''(x) = 6x − 12<br/>
+              f''(x) = 0 → x = 2
+            </div>
+          </div>
+          <div style={{margin:"0 16px 16px",padding:"14px",background:"rgba(0,200,150,0.08)",border:"1px solid rgba(0,200,150,0.2)",borderRadius:"10px"}}>
+            <div style={{fontSize:"13px",fontWeight:"700",color:"#00C896",marginBottom:"4px"}}>Full marks ✓ 4/4</div>
+            <div style={{fontSize:"12px",color:"rgba(255,255,255,0.5)"}}>Correct identification of inflection point and concavity intervals. Great method.</div>
+          </div>
+        </div>
+      )
+    },
+    {
+      num:"2.0",
+      label:"Calculate",
+      title:"Every calculator a student needs.",
+      sub:"WAM calculator with target simulator. HSC mark estimator with school rank data. All your numbers in one place.",
+      color:"#6366f1",
+      ui:(
+        <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
+          <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"16px",padding:"20px"}}>
+            <div style={{fontSize:"10px",color:"rgba(255,255,255,0.3)",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"8px"}}>Current WAM</div>
+            <div style={{fontSize:"52px",fontWeight:"800",color:"#6366f1",letterSpacing:"-0.03em",lineHeight:1}}>78.42</div>
+            <div style={{marginTop:"10px",display:"flex",gap:"8px",alignItems:"center"}}>
+              <span style={{fontSize:"11px",fontWeight:"700",padding:"3px 10px",borderRadius:"6px",background:"rgba(59,130,246,0.12)",color:"#3B82F6"}}>DN</span>
+              <span style={{fontSize:"11px",color:"rgba(255,255,255,0.3)"}}>72 UOC completed</span>
+            </div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
+            {[{l:"MATH1131",m:"78",c:"#00C896"},{l:"DESN1000",m:"82",c:"#00C896"},{l:"CVEN1300",m:"71",c:"#F59E0B"},{l:"GSOE9740",m:"85",c:"#00C896"}].map((c,i)=>(
+              <div key={i} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:"10px",padding:"12px"}}>
+                <div style={{fontSize:"11px",color:"rgba(255,255,255,0.4)",marginBottom:"4px"}}>{c.l}</div>
+                <div style={{fontSize:"22px",fontWeight:"700",color:c.c}}>{c.m}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    },
+    {
+      num:"3.0",
+      label:"Track",
+      title:"See how far you've come.",
+      sub:"Every question you attempt is saved. Track accuracy, marks, and study streaks over time — all synced to your account.",
+      color:"#f59e0b",
+      ui:(
+        <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"16px",overflow:"hidden"}}>
+          <div style={{padding:"16px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"12px"}}>
+            {[{n:"47",l:"Attempted"},{n:"31",l:"Correct"},{n:"89%",l:"Accuracy"},{n:"142/180",l:"Marks"}].map(({n,l})=>(
+              <div key={l} style={{textAlign:"center"}}>
+                <div style={{fontSize:"22px",fontWeight:"700",color:"#fff",fontFamily:"Georgia,serif"}}>{n}</div>
+                <div style={{fontSize:"10px",color:"rgba(255,255,255,0.3)",marginTop:"2px",textTransform:"uppercase",letterSpacing:"0.08em"}}>{l}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{padding:"14px 20px"}}>
+            <div style={{fontSize:"10px",color:"rgba(255,255,255,0.3)",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"10px"}}>Recent attempts</div>
+            {[
+              {course:"University Maths 1",topic:"Integration",score:"4/4",result:"correct"},
+              {course:"Mathematics Adv",topic:"Calculus",score:"3/4",result:"partial"},
+              {course:"Physics",topic:"Waves",score:"5/5",result:"correct"},
+            ].map((a,i)=>(
+              <div key={i} style={{display:"flex",alignItems:"center",gap:"10px",padding:"10px 0",borderBottom:i<2?"1px solid rgba(255,255,255,0.04)":"none"}}>
+                <div style={{width:"6px",height:"6px",borderRadius:"50%",background:a.result==="correct"?"#00C896":"#F59E0B",flexShrink:0}}/>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:"12px",color:"rgba(255,255,255,0.7)"}}>{a.course} · {a.topic}</div>
+                </div>
+                <div style={{fontSize:"12px",fontWeight:"600",color:a.result==="correct"?"#00C896":"#F59E0B"}}>{a.score}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    },
+  ];
+
+  return(
+    <div style={{marginTop:"120px",borderTop:"1px solid rgba(255,255,255,0.06)",paddingTop:"80px"}}>
+      <p style={{fontSize:"13px",color:"rgba(255,255,255,0.25)",letterSpacing:"0.15em",textTransform:"uppercase",marginBottom:"20px",fontFamily:"monospace"}}>What Vortex does</p>
+      <h2 style={{fontSize:"clamp(28px,4vw,42px)",fontWeight:"700",color:"rgba(255,255,255,0.9)",fontFamily:"Georgia,serif",letterSpacing:"-0.02em",lineHeight:1.2,marginBottom:"80px",maxWidth:"500px"}}>
+        Study smarter. <span style={{color:"rgba(255,255,255,0.25)"}}>Not just harder.</span>
+      </h2>
+
+      {sections.map((s,i)=>(
+        <div key={i} ref={sectionRefs[i]}
+          style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"80px",alignItems:"center",marginBottom:"120px",
+            opacity:visible[i]?1:0,
+            transform:visible[i]?"translateY(0)":"translateY(40px)",
+            transition:"opacity 0.7s ease, transform 0.7s ease"}}>
+          <div>
+            <div style={{display:"flex",alignItems:"center",gap:"12px",marginBottom:"24px"}}>
+              <span style={{fontSize:"11px",color:s.color,fontFamily:"monospace",letterSpacing:"0.1em"}}>{s.num}</span>
+              <div style={{height:"1px",width:"32px",background:s.color,opacity:0.4}}/>
+              <span style={{fontSize:"11px",color:"rgba(255,255,255,0.3)",letterSpacing:"0.12em",textTransform:"uppercase"}}>{s.label}</span>
+            </div>
+            <h3 style={{fontSize:"26px",fontWeight:"700",color:"rgba(255,255,255,0.9)",fontFamily:"Georgia,serif",letterSpacing:"-0.02em",lineHeight:1.3,marginBottom:"16px"}}>{s.title}</h3>
+            <p style={{fontSize:"14px",color:"rgba(255,255,255,0.4)",lineHeight:1.8,maxWidth:"380px"}}>{s.sub}</p>
+            <div style={{marginTop:"28px",display:"inline-flex",alignItems:"center",gap:"6px",fontSize:"13px",color:s.color,cursor:"pointer",opacity:0.8}}>
+              Try it <span style={{fontSize:"16px"}}>→</span>
+            </div>
+          </div>
+          <div>{s.ui}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
 export default function App(){
   const[page,setPage]=useState("checker");
   const[calcTab,setCalcTab]=useState("wam");
