@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 
 // ─── FIREBASE ─────────────────────────────────────────────────────────────────
-// Loaded via CDN in App useEffect
 const FB_CONFIG = {
   apiKey: "AIzaSyBULPLaPLq9o73TlMzPuoyuQg1WVyrONrE",
   authDomain: "vortex-64.firebaseapp.com",
@@ -16,7 +15,6 @@ let fbApp=null, fbAuth=null, fbDb=null;
 
 async function loadFirebase(){
   if(fbApp)return;
-  // load Firebase SDK from CDN
   await Promise.all([
     loadScript("https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"),
     loadScript("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"),
@@ -269,7 +267,6 @@ function WAMTab(){
   if(wam!==null&&target!==""&&remUOC!==""){const cur=courses.filter(c=>c.mark!=="").reduce((s,c)=>s+Number(c.mark)*c.uoc,0);needed=((Number(target)*(totalUOC+Number(remUOC)))-cur)/Number(remUOC);}
   return(
     <div style={{display:"flex",flexDirection:"column",gap:"16px"}}>
-      {/* WAM display */}
       <div style={{...card,border:`2px solid ${band?.color||C.border}`,background:band?.bg||C.surface,padding:"24px"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div>
@@ -312,8 +309,8 @@ function WAMTab(){
           <div><label style={lbl}>Remaining UOC</label><input style={inp} type="number" placeholder="e.g. 48" value={remUOC} onChange={e=>setRemUOC(e.target.value)}/></div>
         </div>
         {needed!==null&&<div style={{padding:"0 18px 16px",fontSize:"14px",color:C.textMid}}>
-          {needed>100?<span style={{color:"#EF4444",fontWeight:"600"}}>✗ Not achievable! Would need {needed.toFixed(1)}, exceeds 100.</span>
-          :needed<0?<span style={{color:C.accent,fontWeight:"600"}}>✓ Already there!</span>
+          {needed>100?<span style={{color:"#EF4444",fontWeight:"600"}}>Not achievable! Would need {needed.toFixed(1)}, exceeds 100.</span>
+          :needed<0?<span style={{color:C.accent,fontWeight:"600"}}>Already there!</span>
           :<span>You need an average of <strong style={{color:getBand(Math.round(needed)).color}}>{needed.toFixed(1)}</strong> <span style={badge(getBand(Math.round(needed)).color,getBand(Math.round(needed)).bg)}>{getBand(Math.round(needed)).label}</span> across your remaining {remUOC} UOC.</span>}
         </div>}
         {wam===null&&<div style={{padding:"0 18px 16px",fontSize:"12px",color:C.textLight}}>Add at least one course to use the simulator.</div>}
@@ -459,7 +456,6 @@ function MathText({text,style={}}){
         });
       }
     };
-    // retry until auto-render is loaded
     if(window.renderMathInElement)render();
     else{const t=setInterval(()=>{if(window.renderMathInElement){render();clearInterval(t);}},200);return()=>clearInterval(t);}
   },[text]);
@@ -503,7 +499,7 @@ function DesmosGraph({expressions=[]}){
   );
 }
 
-// ─── AI CHECKER (Leibniz engine) ─────────────────────────────────────────────
+// ─── AI CHECKER ──────────────────────────────────────────────────────────────
 const TOPICS={
   "Mathematics Advanced":["Functions","Trigonometry","Calculus","Exponential & Logarithms","Financial Mathematics","Statistical Analysis","Networks"],
   "Mathematics Extension 1":["Further Functions","Trigonometric Equations","Inverse Trigonometry","Further Calculus","Combinatorics","Binomial Theorem","Vectors","Proof"],
@@ -533,7 +529,6 @@ function parseJSON(raw){
   const end=cleaned.lastIndexOf("}");
   if(start===-1||end===-1)throw new Error("Response was cut off — try again");
   const slice=cleaned.slice(start,end+1);
-
   let inString=false,escaped=false,result="";
   for(let i=0;i<slice.length;i++){
     const ch=slice[i];
@@ -543,14 +538,12 @@ function parseJSON(raw){
     if(inString&&(ch==="\n"||ch==="\r")){result+="\\n";continue;}
     result+=ch;
   }
-
   return JSON.parse(result);
 }
 
 function AICheckerTab({user}){
   const[mode,setMode]=useState("practice");
-  const[courseType,setCourseType]=useState(null); // null | "hsc" | "uni"
-  // Practice state
+  const[courseType,setCourseType]=useState(null);
   const[course,setCourse]=useState("Mathematics Advanced");
   const[topic,setTopic]=useState("Calculus");
   const[difficulty,setDifficulty]=useState("Level 1");
@@ -562,7 +555,6 @@ function AICheckerTab({user}){
   const[showSolution,setShowSolution]=useState(false);
   const[stats,setStats]=useState({attempted:0,correct:0,marksEarned:0,marksTotal:0});
   const[genError,setGenError]=useState(null);
-  // Check mode state
   const[checkQ,setCheckQ]=useState("");
   const[checkWorking,setCheckWorking]=useState("");
   const[checkSubject,setCheckSubject]=useState("Mathematics Advanced");
@@ -574,7 +566,6 @@ function AICheckerTab({user}){
   const[inputMode,setInputMode]=useState("type");
   const[visibleHints,setVisibleHints]=useState([]);
 
-  // Typewriter effect
   const[displayText,setDisplayText]=useState("");
   const greetingBase=new Date().getHours()<12?"Good Morning":new Date().getHours()<17?"Good Afternoon":"Good Evening";
   const fullGreeting=user?.displayName?`${greetingBase}, ${user.displayName.split(" ")[0]}.`:`${greetingBase}.`;
@@ -589,7 +580,6 @@ function AICheckerTab({user}){
     return()=>clearInterval(t);
   },[fullGreeting]);
   const fileRef=useRef(null);
-
   const topics=TOPICS[course]||[];
 
   const generate=async()=>{
@@ -603,7 +593,7 @@ IMPORTANT: Wrap ALL mathematical expressions in $ signs for LaTeX. For example: 
 If the question involves a function or graph, include a "graph" array with Desmos LaTeX expressions to plot (e.g. ["y=x^2", "y=2x+1"]). If no graph is needed, omit "graph" entirely.
 Return ONLY valid JSON, no markdown, no extra text:
 {"question":"question text with $math$","marks":<int 1-5>,"graph":["desmos expression 1","desmos expression 2"],"hints":["hint with $math$"],"solution_steps":["Step 1: ... $math$"],"final_answer":"answer with $math$"}
-Make it genuinely challenging and exam-authentic. Ensure the JSON is complete and properly closed.`;
+Make it genuinely challenging and exam-authentic. Ensure the JSON is complete and properly closed. Be concise — keep solution_steps brief, max 4 steps.`;
       const raw=await callClaude(system,`Generate a ${diffLabel} question on ${topic} for ${course}.`,8000);
       setQuestion(parseJSON(raw));
     }catch(e){setGenError("Error: "+e.message);}
@@ -632,21 +622,20 @@ Award marks fairly for correct method even if minor arithmetic slips.`;
         marksEarned:s.marksEarned+Math.min(fb.marks_awarded,question.marks),
         marksTotal:s.marksTotal+question.marks
       }));
-      // Save to Firestore if signed in
-if(user&&fbDb){
-  try{
-    await fbDb.collection("users").doc(user.uid).collection("attempts").add({
-      course,topic,difficulty,
-      question:question.question,
-      questionObj:question,
-      marks_awarded:Math.min(fb.marks_awarded,question.marks),
-      marks_total:question.marks,
-      overall:fb.overall,
-      answer,
-      timestamp:window.firebase.firestore.FieldValue.serverTimestamp()
-    });
-  }catch(e){console.log("Save failed:",e);}
-}
+      if(user&&fbDb){
+        try{
+          await fbDb.collection("users").doc(user.uid).collection("attempts").add({
+            course,topic,difficulty,
+            question:question.question,
+            questionObj:question,
+            marks_awarded:Math.min(fb.marks_awarded,question.marks),
+            marks_total:question.marks,
+            overall:fb.overall,
+            answer,
+            timestamp:window.firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }catch(e){console.log("Save failed:",e);}
+      }
     }catch(e){setGenError("Marking failed: "+e.message);}
     setCheckLoading(false);
   };
@@ -693,13 +682,10 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
   const fbIcon=t=>t==="correct"?"✓":t==="incorrect"?"✗":t==="partial"?"~":"i";
   const pct=feedback&&question?feedback.marks_awarded/question.marks:0;
   const scoreColor=pct>=1?C.accent:pct>=0.5?"#F59E0B":"#EF4444";
-  const scoreBg=pct>=1?"rgba(0,200,150,0.10)":pct>=0.5?"rgba(245,158,11,0.10)":"rgba(239,68,68,0.10)";
   const acc=stats.attempted>0?Math.round(stats.correct/stats.attempted*100):null;
 
   return(
     <div style={{display:"flex",flexDirection:"column",gap:"16px"}}>
-
-      {/* Mode toggle */}
       <div style={{display:"flex",gap:"6px",background:"rgba(255,255,255,0.04)",padding:"4px",borderRadius:"10px",border:"1px solid rgba(255,255,255,0.08)"}}>
         {[{id:"practice",label:"Practice questions"},{id:"check",label:"Check my working"}].map(({id,label})=>(
           <button key={id} onClick={()=>setMode(id)} style={{flex:1,padding:"9px 0",borderRadius:"7px",border:"none",fontFamily:"inherit",fontSize:"13px",fontWeight:"600",cursor:"pointer",transition:"all 0.15s",
@@ -710,11 +696,8 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
         ))}
       </div>
 
-      {/* ── PRACTICE MODE ── */}
       {mode==="practice"&&(
         <div style={{minHeight:"520px",display:"flex",flexDirection:"column",position:"relative"}}>
-
-          {/* Session stats row */}
           {stats.attempted>0&&(
             <div style={{display:"flex",gap:"24px",justifyContent:"center",marginBottom:"32px"}}>
               {[{n:stats.attempted,l:"attempted"},{n:stats.correct,l:"correct"},{n:`${stats.marksEarned}/${stats.marksTotal}`,l:"marks"},{n:acc!=null?acc+"%":"—",l:"accuracy"}].map(({n,l})=>(
@@ -726,7 +709,6 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
             </div>
           )}
 
-          {/* Center content */}
           {!question&&!genLoading&&(
             <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",padding:"60px 0 120px"}}>
               <div style={{fontSize:"48px",fontWeight:"400",color:C.text,fontFamily:"Georgia,serif",marginBottom:"16px",letterSpacing:"-0.02em",minHeight:"60px"}}>
@@ -758,7 +740,6 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
             </div>
           )}
 
-          {/* Loading state */}
           {genLoading&&(
             <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"60px 0 120px"}}>
               <div style={{fontSize:"32px",fontWeight:"400",color:C.textMid,fontFamily:"Georgia,serif",marginBottom:"12px",letterSpacing:"-0.01em"}}>Generating question…</div>
@@ -769,14 +750,10 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
             </div>
           )}
 
-          {genError&&(
-            <div style={{textAlign:"center",padding:"20px",color:"#f87171",fontSize:"14px"}}>{genError}</div>
-          )}
+          {genError&&<div style={{textAlign:"center",padding:"20px",color:"#f87171",fontSize:"14px"}}>{genError}</div>}
 
-          {/* Question */}
           {question&&!genLoading&&(
             <div style={{display:"flex",flexDirection:"column",gap:"16px",paddingBottom:"120px"}}>
-              {/* Question card */}
               <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"16px",overflow:"hidden"}}>
                 <div style={{padding:"14px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",display:"flex",gap:"8px",flexWrap:"wrap",alignItems:"center"}}>
                   <span style={{fontSize:"11px",fontWeight:"600",padding:"3px 10px",borderRadius:"999px",background:"rgba(0,200,150,0.15)",color:C.accent,border:"1px solid rgba(0,200,150,0.2)"}}>{course.replace("Mathematics ","")}</span>
@@ -807,7 +784,6 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
                 )}
               </div>
 
-              {/* Answer */}
               {!feedback&&(
                 <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"16px",overflow:"hidden"}}>
                   <div style={{padding:"13px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -826,7 +802,6 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
                 </div>
               )}
 
-              {/* Feedback */}
               {feedback&&(
                 <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
                   <div style={{background:`rgba(${pct>=1?"0,200,150":pct>=0.5?"245,158,11":"248,113,113"},0.08)`,border:`1px solid rgba(${pct>=1?"0,200,150":pct>=0.5?"245,158,11":"248,113,113"},0.2)`,borderRadius:"16px",padding:"20px"}}>
@@ -836,7 +811,6 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
                     </div>
                     <div style={{fontSize:"14px",color:C.textMid,lineHeight:1.7}}>{feedback.summary}</div>
                   </div>
-
                   <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"16px",overflow:"hidden"}}>
                     <div style={{padding:"13px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",fontSize:"11px",letterSpacing:"0.12em",color:C.textLight,textTransform:"uppercase",fontWeight:"600"}}>Feedback</div>
                     {feedback.feedback_lines?.map((fl,i)=>(
@@ -846,7 +820,6 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
                       </div>
                     ))}
                   </div>
-
                   <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"16px",overflow:"hidden"}}>
                     <button onClick={()=>setShowSolution(s=>!s)} style={{width:"100%",padding:"14px 20px",background:"none",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:"8px",fontFamily:"inherit",fontSize:"13px",fontWeight:"600",color:C.textLight,textAlign:"left"}}>
                       <span>{showSolution?"▼":"▶"}</span> {showSolution?"Hide":"View"} worked solution
@@ -866,7 +839,6 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
                       </div>
                     )}
                   </div>
-
                   <button onClick={generate} style={{padding:"12px",borderRadius:"12px",border:"1px solid rgba(255,255,255,0.1)",background:"transparent",color:C.textMid,fontFamily:"inherit",fontSize:"13px",fontWeight:"600",cursor:"pointer"}}>
                     Next question →
                   </button>
@@ -875,7 +847,6 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
             </div>
           )}
 
-          {/* Floating bottom bar — Leibniz style */}
           {!feedback&&courseType&&(
             <div style={{position:"sticky",bottom:"-32px",marginTop:"auto",padding:"16px 0 8px",background:"linear-gradient(to top, rgba(15,23,42,1) 60%, rgba(15,23,42,0))"}}>
               <div style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:"16px",padding:"12px 16px",display:"flex",alignItems:"center",gap:"12px",backdropFilter:"blur(12px)"}}>
@@ -902,13 +873,10 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
               </div>
             </div>
           )}
-
         </div>
       )}
 
-      {/* ── CHECK MODE ── */}
       {mode==="check"&&<>
-        {/* Input mode toggle */}
         <div style={{display:"flex",gap:"6px",background:"rgba(255,255,255,0.04)",padding:"4px",borderRadius:"10px",border:"1px solid rgba(255,255,255,0.08)"}}>
           {[{id:"type",label:"Type working"},{id:"image",label:"Upload photo"}].map(({id,label})=>(
             <button key={id} onClick={()=>setInputMode(id)} style={{flex:1,padding:"9px 0",borderRadius:"7px",border:"none",fontFamily:"inherit",fontSize:"13px",fontWeight:"600",cursor:"pointer",transition:"all 0.15s",
@@ -918,7 +886,6 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
             </button>
           ))}
         </div>
-
         <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"16px",overflow:"hidden"}}>
           <div style={{padding:"13px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",fontSize:"11px",letterSpacing:"0.12em",color:C.textLight,textTransform:"uppercase",fontWeight:"600"}}>Subject</div>
           <div style={{padding:"14px 20px"}}>
@@ -927,14 +894,12 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
             </select>
           </div>
         </div>
-
         <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"16px",overflow:"hidden"}}>
           <div style={{padding:"13px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",fontSize:"11px",letterSpacing:"0.12em",color:C.textLight,textTransform:"uppercase",fontWeight:"600"}}>Question <span style={{opacity:0.5,fontWeight:"400"}}>(optional)</span></div>
           <div style={{padding:"14px 20px"}}>
             <textarea style={{width:"100%",minHeight:"64px",resize:"vertical",background:"transparent",border:"none",outline:"none",color:"rgba(255,255,255,0.8)",fontFamily:"inherit",fontSize:"14px",lineHeight:1.6,boxSizing:"border-box"}} placeholder="e.g. Find the derivative of f(x) = x³ + 2x²" value={checkQ} onChange={e=>setCheckQ(e.target.value)}/>
           </div>
         </div>
-
         {inputMode==="type"?(
           <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"16px",overflow:"hidden"}}>
             <div style={{padding:"13px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",fontSize:"11px",letterSpacing:"0.12em",color:C.textLight,textTransform:"uppercase",fontWeight:"600"}}>Your working. One step per line</div>
@@ -969,16 +934,13 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
             </div>
           </div>
         )}
-
         <button style={{width:"100%",padding:"14px",fontSize:"15px",fontWeight:"700",borderRadius:"12px",border:"none",
           background:checkLoading2?"rgba(255,255,255,0.08)":C.accent,color:checkLoading2?"rgba(255,255,255,0.3)":"#fff",
           cursor:checkLoading2?"not-allowed":"pointer",fontFamily:"inherit"}}
           onClick={runCheckMode} disabled={checkLoading2}>
           {checkLoading2?"Checking…":"Check my working →"}
         </button>
-
         {checkError&&<div style={{padding:"14px",borderRadius:"12px",border:"1px solid rgba(248,113,113,0.3)",background:"rgba(248,113,113,0.06)",fontSize:"13px",color:"#f87171"}}>{checkError}</div>}
-
         {checkResult&&(
           <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
             <div style={{background:`rgba(${checkResult.overall==="correct"?"0,200,150":checkResult.overall==="error"?"248,113,113":"245,158,11"},0.08)`,border:`1px solid rgba(${checkResult.overall==="correct"?"0,200,150":checkResult.overall==="error"?"248,113,113":"245,158,11"},0.2)`,borderRadius:"16px",padding:"20px"}}>
@@ -989,7 +951,6 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
               <div style={{fontSize:"14px",color:C.textMid,lineHeight:1.7}}>{checkResult.summary}</div>
               {checkResult.finalAnswer&&<div style={{marginTop:"10px",fontSize:"14px"}}><span style={{color:C.textLight}}>Correct answer: </span><span style={{fontWeight:"700",color:C.accent}}>{checkResult.finalAnswer}</span></div>}
             </div>
-
             <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"16px",overflow:"hidden"}}>
               <div style={{padding:"13px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",fontSize:"11px",letterSpacing:"0.12em",color:C.textLight,textTransform:"uppercase",fontWeight:"600"}}>Step-by-step marking</div>
               {checkResult.steps?.map((step,i)=>(
@@ -1004,7 +965,6 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
                 </div>
               ))}
             </div>
-
             {(checkResult.examTip||checkResult.commonMistake)&&(
               <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"16px",overflow:"hidden"}}>
                 <div style={{padding:"13px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",fontSize:"11px",letterSpacing:"0.12em",color:C.textLight,textTransform:"uppercase",fontWeight:"600"}}>Examiner advice</div>
@@ -1020,7 +980,6 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
                 </div>
               </div>
             )}
-
             <button onClick={()=>{setCheckResult(null);setCheckWorking("");setCheckImage(null);setCheckImageB64(null);}}
               style={{padding:"11px",borderRadius:"12px",border:"1px solid rgba(255,255,255,0.1)",background:"transparent",color:C.textLight,fontFamily:"inherit",fontSize:"13px",fontWeight:"600",cursor:"pointer"}}>
               Clear and try again
@@ -1032,10 +991,8 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
   );
 }
 
-
-// ─── UNSW COURSES (comprehensive) ────────────────────────────────────────────
+// ─── UNSW COURSES ─────────────────────────────────────────────────────────────
 const UNSW_COURSES=[
-  // ── Accounting ──
   {code:"ACCT1501",name:"Accounting and Financial Management 1A",uoc:6,faculty:"Business"},
   {code:"ACCT1511",name:"Accounting and Financial Management 1B",uoc:6,faculty:"Business"},
   {code:"ACCT2101",name:"Accounting for Decision Making",uoc:6,faculty:"Business"},
@@ -1049,7 +1006,6 @@ const UNSW_COURSES=[
   {code:"ACTL2111",name:"Actuarial Studies A",uoc:6,faculty:"Business"},
   {code:"ACTL3141",name:"Actuarial Theory and Practice A",uoc:6,faculty:"Business"},
   {code:"ACTL3151",name:"Life Contingencies",uoc:6,faculty:"Business"},
-  // ── Architecture / Built Environment ──
   {code:"ARCH1101",name:"Design Thinking",uoc:6,faculty:"Arts & Architecture"},
   {code:"ARCH1201",name:"The City: A History",uoc:6,faculty:"Arts & Architecture"},
   {code:"ARCH2101",name:"Architectural Design Studio 2",uoc:6,faculty:"Arts & Architecture"},
@@ -1059,7 +1015,6 @@ const UNSW_COURSES=[
   {code:"BLDG3001",name:"Construction Technology 3",uoc:6,faculty:"Arts & Architecture"},
   {code:"PLAN1111",name:"Planning in Australia",uoc:6,faculty:"Arts & Architecture"},
   {code:"PLAN2111",name:"Urban Planning",uoc:6,faculty:"Arts & Architecture"},
-  // ── Arts / Humanities ──
   {code:"ARTS1360",name:"The Contemporary World",uoc:6,faculty:"Arts"},
   {code:"ARTS1690",name:"Australian History",uoc:6,faculty:"Arts"},
   {code:"ARTS2090",name:"Foundations: Explanation and Enquiry",uoc:6,faculty:"Arts"},
@@ -1079,7 +1034,6 @@ const UNSW_COURSES=[
   {code:"SOCI2011",name:"Classical Sociological Theory",uoc:6,faculty:"Arts"},
   {code:"POLS1111",name:"Government and Politics in Australia",uoc:6,faculty:"Arts"},
   {code:"POLS2741",name:"Political Theory",uoc:6,faculty:"Arts"},
-  // ── Biology / Biomedical ──
   {code:"BIOL1011",name:"Biology 1A",uoc:6,faculty:"Science"},
   {code:"BIOL1021",name:"Biology 1B",uoc:6,faculty:"Science"},
   {code:"BIOL1031",name:"Higher Biology",uoc:6,faculty:"Science"},
@@ -1094,7 +1048,6 @@ const UNSW_COURSES=[
   {code:"BABS1201",name:"Molecules, Cells and Genes",uoc:6,faculty:"Science"},
   {code:"BABS2204",name:"Molecular Cell Biology",uoc:6,faculty:"Science"},
   {code:"BABS3031",name:"Biotechnology Research Methods",uoc:6,faculty:"Science"},
-  // ── Chemistry ──
   {code:"CHEM1011",name:"Chemistry A",uoc:6,faculty:"Science"},
   {code:"CHEM1021",name:"Chemistry B",uoc:6,faculty:"Science"},
   {code:"CHEM1031",name:"Higher Chemistry A",uoc:6,faculty:"Science"},
@@ -1104,7 +1057,6 @@ const UNSW_COURSES=[
   {code:"CHEM2051",name:"Analytical Chemistry",uoc:6,faculty:"Science"},
   {code:"CHEM3011",name:"Physical Chemistry",uoc:6,faculty:"Science"},
   {code:"CHEM3101",name:"Advanced Organic Chemistry",uoc:6,faculty:"Science"},
-  // ── Civil / Surveying ──
   {code:"CVEN1300",name:"Engineering Mechanics",uoc:6,faculty:"Engineering"},
   {code:"CVEN2002",name:"Engineering Computations",uoc:6,faculty:"Engineering"},
   {code:"CVEN2101",name:"Engineering Construction and Management",uoc:6,faculty:"Engineering"},
@@ -1119,7 +1071,6 @@ const UNSW_COURSES=[
   {code:"SURV1001",name:"Surveying for Engineers",uoc:6,faculty:"Engineering"},
   {code:"SURV2001",name:"Spatial Data Infrastructure",uoc:6,faculty:"Engineering"},
   {code:"SURV3001",name:"Geodesy and GPS",uoc:6,faculty:"Engineering"},
-  // ── Computing / Software ──
   {code:"COMP1511",name:"Programming Fundamentals",uoc:6,faculty:"Engineering"},
   {code:"COMP1521",name:"Computer Systems Fundamentals",uoc:6,faculty:"Engineering"},
   {code:"COMP1531",name:"Software Engineering Fundamentals",uoc:6,faculty:"Engineering"},
@@ -1148,18 +1099,15 @@ const UNSW_COURSES=[
   {code:"COMP9444",name:"Neural Networks and Deep Learning",uoc:6,faculty:"Engineering"},
   {code:"COMP9447",name:"Security Engineering Workshop",uoc:6,faculty:"Engineering"},
   {code:"COMP9900",name:"Information Technology Project",uoc:6,faculty:"Engineering"},
-  // ── Data Science ──
   {code:"DATA1001",name:"Foundations of Data Science",uoc:6,faculty:"Science"},
   {code:"DATA2001",name:"Data Science Technologies",uoc:6,faculty:"Science"},
   {code:"DATA2002",name:"Data Analytics: Learning from Data",uoc:6,faculty:"Science"},
   {code:"DATA3001",name:"Data Science and Decisions",uoc:6,faculty:"Science"},
-  // ── Design ──
   {code:"DESN1000",name:"Engineering Design",uoc:6,faculty:"Engineering"},
   {code:"DESN2000",name:"Engineering Design and Professional Practice",uoc:6,faculty:"Engineering"},
   {code:"DDES1000",name:"Design Thinking Studio",uoc:6,faculty:"Arts & Architecture"},
   {code:"DDES2010",name:"Interaction Design Studio",uoc:6,faculty:"Arts & Architecture"},
   {code:"ADES2011",name:"Design Research",uoc:6,faculty:"Arts & Architecture"},
-  // ── Economics ──
   {code:"ECON1101",name:"Microeconomics 1",uoc:6,faculty:"Business"},
   {code:"ECON1102",name:"Macroeconomics 1",uoc:6,faculty:"Business"},
   {code:"ECON1202",name:"Quantitative Analysis for Business and Economics",uoc:6,faculty:"Business"},
@@ -1170,7 +1118,6 @@ const UNSW_COURSES=[
   {code:"ECON3202",name:"International Trade",uoc:6,faculty:"Business"},
   {code:"ECON3206",name:"Econometrics",uoc:6,faculty:"Business"},
   {code:"ECON3301",name:"Environmental Economics",uoc:6,faculty:"Business"},
-  // ── Electrical / Telecommunications ──
   {code:"ELEC1111",name:"Electrical and Telecommunications Engineering",uoc:6,faculty:"Engineering"},
   {code:"ELEC2104",name:"Electronic Devices and Circuits",uoc:6,faculty:"Engineering"},
   {code:"ELEC2133",name:"Analogue Electronics",uoc:6,faculty:"Engineering"},
@@ -1183,21 +1130,18 @@ const UNSW_COURSES=[
   {code:"TELE3112",name:"Analogue and Digital Communications",uoc:6,faculty:"Engineering"},
   {code:"TELE3118",name:"Network Technologies",uoc:6,faculty:"Engineering"},
   {code:"TELE4642",name:"Networks",uoc:6,faculty:"Engineering"},
-  // ── Engineering General ──
   {code:"ENGG1000",name:"Engineering Design and Innovation",uoc:6,faculty:"Engineering"},
   {code:"ENGG2400",name:"Mechanics of Solids",uoc:6,faculty:"Engineering"},
   {code:"ENGG2600",name:"Engineering Profession and Practice",uoc:3,faculty:"Engineering"},
   {code:"ENGG4600",name:"Engineering Vertically Integrated Project",uoc:6,faculty:"Engineering"},
   {code:"GSOE9740",name:"Industrial Ecology and Sustainable Engineering",uoc:6,faculty:"Engineering"},
   {code:"GSOE9820",name:"Technology and Policy",uoc:6,faculty:"Engineering"},
-  // ── Environmental / Geoscience ──
   {code:"GEOS1701",name:"Global Environmental Change",uoc:6,faculty:"Science"},
   {code:"GEOS2101",name:"Earth History and Resources",uoc:6,faculty:"Science"},
   {code:"GEOS2111",name:"Physical Geography",uoc:6,faculty:"Science"},
   {code:"GEOS3261",name:"Environmental Management",uoc:6,faculty:"Science"},
   {code:"ENVS1001",name:"Introduction to Environmental Studies",uoc:6,faculty:"Science"},
   {code:"ENVS3201",name:"Environmental Impact Assessment",uoc:6,faculty:"Science"},
-  // ── Finance ──
   {code:"FINS1612",name:"Capital Markets and Institutions",uoc:6,faculty:"Business"},
   {code:"FINS1613",name:"Business Finance",uoc:6,faculty:"Business"},
   {code:"FINS2624",name:"Portfolio Management",uoc:6,faculty:"Business"},
@@ -1208,11 +1152,9 @@ const UNSW_COURSES=[
   {code:"FINS3635",name:"Options, Futures and Risk Management",uoc:6,faculty:"Business"},
   {code:"FINS3641",name:"Security Analysis and Valuation",uoc:6,faculty:"Business"},
   {code:"FINS4781",name:"FinTech",uoc:6,faculty:"Business"},
-  // ── Food Science ──
   {code:"FOOD1001",name:"Introduction to Food Science",uoc:6,faculty:"Science"},
   {code:"FOOD2001",name:"Food Chemistry",uoc:6,faculty:"Science"},
   {code:"FOOD3001",name:"Food Processing and Preservation",uoc:6,faculty:"Science"},
-  // ── Law ──
   {code:"LAWS1052",name:"Foundations of Law",uoc:6,faculty:"Law"},
   {code:"LAWS1061",name:"Criminal Law and Procedure",uoc:6,faculty:"Law"},
   {code:"LAWS1071",name:"Contracts A",uoc:6,faculty:"Law"},
@@ -1230,7 +1172,6 @@ const UNSW_COURSES=[
   {code:"LEGT1710",name:"Business and the Law",uoc:6,faculty:"Law"},
   {code:"LEGT2751",name:"Commercial Law",uoc:6,faculty:"Law"},
   {code:"LEGT3710",name:"Employment Law",uoc:6,faculty:"Law"},
-  // ── Management ──
   {code:"MGMT1001",name:"Managing Organisations and People",uoc:6,faculty:"Business"},
   {code:"MGMT1101",name:"Global Business Environment",uoc:6,faculty:"Business"},
   {code:"MGMT1301",name:"Organisations and Management",uoc:6,faculty:"Business"},
@@ -1244,14 +1185,12 @@ const UNSW_COURSES=[
   {code:"MARK2054",name:"Marketing Communications",uoc:6,faculty:"Business"},
   {code:"MARK3054",name:"Brand Management",uoc:6,faculty:"Business"},
   {code:"MARK3082",name:"Digital Marketing",uoc:6,faculty:"Business"},
-  // ── Materials / Manufacturing ──
   {code:"MATS1101",name:"Materials Science and Engineering",uoc:6,faculty:"Engineering"},
   {code:"MATS2002",name:"Structure and Properties of Materials",uoc:6,faculty:"Engineering"},
   {code:"MATS2003",name:"Materials Testing and Manufacturing",uoc:6,faculty:"Engineering"},
   {code:"MATS3003",name:"Advanced Materials",uoc:6,faculty:"Engineering"},
   {code:"MANF2700",name:"Industrial Engineering",uoc:6,faculty:"Engineering"},
   {code:"MANF3020",name:"Manufacturing Systems",uoc:6,faculty:"Engineering"},
-  // ── Mathematics ──
   {code:"MATH1031",name:"Mathematics for Life Sciences",uoc:6,faculty:"Science"},
   {code:"MATH1041",name:"Statistics for Life and Social Sciences",uoc:6,faculty:"Science"},
   {code:"MATH1081",name:"Discrete Mathematics",uoc:6,faculty:"Science"},
@@ -1285,7 +1224,6 @@ const UNSW_COURSES=[
   {code:"MATH3821",name:"Statistical Modelling and Computing",uoc:6,faculty:"Science"},
   {code:"MATH3831",name:"Statistical Inference",uoc:6,faculty:"Science"},
   {code:"MATH3841",name:"Statistical Machine Learning",uoc:6,faculty:"Science"},
-  // ── Mechanical / Aerospace ──
   {code:"MECH1000",name:"Introduction to Mechanical Engineering",uoc:6,faculty:"Engineering"},
   {code:"MECH2400",name:"Mechanical Design 1",uoc:6,faculty:"Engineering"},
   {code:"MECH2500",name:"Dynamics",uoc:6,faculty:"Engineering"},
@@ -1301,7 +1239,6 @@ const UNSW_COURSES=[
   {code:"AVEN4112",name:"Aerodynamics",uoc:6,faculty:"Engineering"},
   {code:"MTRN3500",name:"Mobile Robotics",uoc:6,faculty:"Engineering"},
   {code:"MTRN4110",name:"Advanced Robotics",uoc:6,faculty:"Engineering"},
-  // ── Medicine / Health ──
   {code:"ANAT1511",name:"Anatomy",uoc:6,faculty:"Medicine"},
   {code:"ANAT2521",name:"Applied Anatomy",uoc:6,faculty:"Medicine"},
   {code:"BMED1001",name:"Foundations of Medicine",uoc:6,faculty:"Medicine"},
@@ -1316,13 +1253,11 @@ const UNSW_COURSES=[
   {code:"PHPH3101",name:"Physiology",uoc:6,faculty:"Medicine"},
   {code:"SOMA4001",name:"Human Anatomy",uoc:6,faculty:"Medicine"},
   {code:"SPHL3001",name:"Introduction to Speech Pathology",uoc:6,faculty:"Medicine"},
-  // ── Mining / Petroleum ──
   {code:"MINE1010",name:"Introduction to Mining Engineering",uoc:6,faculty:"Engineering"},
   {code:"MINE2120",name:"Mine Design and Planning",uoc:6,faculty:"Engineering"},
   {code:"PTRL2010",name:"Introduction to Petroleum Engineering",uoc:6,faculty:"Engineering"},
   {code:"PTRL3010",name:"Reservoir Engineering",uoc:6,faculty:"Engineering"},
   {code:"PTRL4013",name:"Petroleum Production Engineering",uoc:6,faculty:"Engineering"},
-  // ── Pharmacy ──
   {code:"PHAR1111",name:"Pharmacy Practice 1",uoc:6,faculty:"Pharmacy"},
   {code:"PHAR1121",name:"Pharmaceutical Chemistry 1A",uoc:6,faculty:"Pharmacy"},
   {code:"PHAR1131",name:"Pharmacology and Pathophysiology 1",uoc:6,faculty:"Pharmacy"},
@@ -1340,7 +1275,6 @@ const UNSW_COURSES=[
   {code:"PHAR4112",name:"Pharmacy Practice 4B",uoc:6,faculty:"Pharmacy"},
   {code:"PHAR4121",name:"Drug Design and Action",uoc:6,faculty:"Pharmacy"},
   {code:"PHAR4141",name:"Pharmaceutical Sciences",uoc:6,faculty:"Pharmacy"},
-  // ── Physics ──
   {code:"PHYS1121",name:"Physics 1A",uoc:6,faculty:"Science"},
   {code:"PHYS1131",name:"Higher Physics 1A",uoc:6,faculty:"Science"},
   {code:"PHYS1221",name:"Physics 1B",uoc:6,faculty:"Science"},
@@ -1353,7 +1287,6 @@ const UNSW_COURSES=[
   {code:"PHYS3111",name:"Quantum Mechanics and Electrodynamics",uoc:6,faculty:"Science"},
   {code:"PHYS3113",name:"Advanced Condensed Matter Physics",uoc:6,faculty:"Science"},
   {code:"PHYS3115",name:"Astrophysics and Relativity",uoc:6,faculty:"Science"},
-  // ── Psychology ──
   {code:"PSYC1001",name:"Psychology 1A",uoc:6,faculty:"Science"},
   {code:"PSYC1011",name:"Psychology 1B",uoc:6,faculty:"Science"},
   {code:"PSYC2001",name:"Research Methods 2",uoc:6,faculty:"Science"},
@@ -1363,16 +1296,13 @@ const UNSW_COURSES=[
   {code:"PSYC3001",name:"Research Methods 3",uoc:6,faculty:"Science"},
   {code:"PSYC3101",name:"Perception",uoc:6,faculty:"Science"},
   {code:"PSYC3211",name:"Abnormal Psychology",uoc:6,faculty:"Science"},
-  // ── Social Work ──
   {code:"SWKH1001",name:"Introduction to Social Work",uoc:6,faculty:"Arts"},
   {code:"SWKH2001",name:"Social Work Practice",uoc:6,faculty:"Arts"},
   {code:"SWKH3001",name:"Advanced Social Work Practice",uoc:6,faculty:"Arts"},
-  // ── Statistics ──
   {code:"STAT1101",name:"Statistics for Life Sciences",uoc:6,faculty:"Science"},
   {code:"STAT2001",name:"Probability",uoc:6,faculty:"Science"},
   {code:"STAT2101",name:"Applied Statistics",uoc:6,faculty:"Science"},
   {code:"STAT3001",name:"Statistical Inference",uoc:6,faculty:"Science"},
-  // ── General Education ──
   {code:"GEND1000",name:"Challenging Gender",uoc:6,faculty:"GenEd"},
   {code:"GENS4010",name:"Science, Technology and Society",uoc:6,faculty:"GenEd"},
   {code:"GENL5004",name:"Leadership Transforming Lives",uoc:6,faculty:"GenEd"},
@@ -1392,11 +1322,9 @@ function TimetableTab(){
   const[apiResults,setApiResults]=useState([]);
   const[fetching,setFetching]=useState(false);
   const debounceRef=useRef(null);
-
   const days=["Mon","Tue","Wed","Thu","Fri"];
   const hours=Array.from({length:13},(_,i)=>i+8);
 
-  // Live search from UNSW handbook API
   useEffect(()=>{
     if(search.length<2){setApiResults([]);return;}
     clearTimeout(debounceRef.current);
@@ -1409,19 +1337,11 @@ function TimetableTab(){
         const courses=(data.contentlets||[])
           .filter(c=>c.contentTypeLabel==="Course"&&c.code)
           .slice(0,10)
-          .map(c=>({
-            code:c.code,
-            name:c.title||c.name||"",
-            uoc:c.creditPoints||6,
-            faculty:c.facultyID||""
-          }));
+          .map(c=>({code:c.code,name:c.title||c.name||"",uoc:c.creditPoints||6,faculty:c.facultyID||""}));
         setApiResults(courses);
       }catch{
-        // fallback to local list
         const q=search.toLowerCase();
-        const local=UNSW_COURSES.filter(c=>
-          c.code.toLowerCase().includes(q)||c.name.toLowerCase().includes(q)
-        ).slice(0,10);
+        const local=UNSW_COURSES.filter(c=>c.code.toLowerCase().includes(q)||c.name.toLowerCase().includes(q)).slice(0,10);
         setApiResults(local);
       }
       setFetching(false);
@@ -1439,21 +1359,18 @@ function TimetableTab(){
     setSelected(p=>[...p,{...c,color}]);
     setSearch("");setShowDrop(false);setApiResults([]);
   };
-
   const removeCourse=code=>{
     setSelected(p=>p.filter(c=>c.code!==code));
     const newSlots={};
     Object.entries(slots).forEach(([k,v])=>{if(v.courseCode!==code)newSlots[k]=v;});
     setSlots(newSlots);
   };
-
   const handleCellClick=(day,hour)=>{
     const key=`${day}-${hour}`;
     if(slots[key]){setSlots(p=>{const n={...p};delete n[key];return n;});return;}
     if(selected.length===0)return;
     setAddingSlot({day,hour});
   };
-
   const confirmSlot=(courseCode,type)=>{
     if(!addingSlot)return;
     const key=`${addingSlot.day}-${addingSlot.hour}`;
@@ -1461,22 +1378,16 @@ function TimetableTab(){
     setSlots(p=>({...p,[key]:{courseCode,type,color:course?.color}}));
     setAddingSlot(null);
   };
-
   const handbookUrl=code=>`https://www.handbook.unsw.edu.au/undergraduate/courses/2026/${code}`;
 
   return(
     <div style={{display:"flex",flexDirection:"column",gap:"16px"}}>
-
-      {/* Course search */}
       <div style={{...card,overflow:"visible"}}>
         <div style={cardH}>Select your courses</div>
         <div style={{padding:"14px 18px",position:"relative",borderRadius:"0 0 12px 12px",overflow:"visible"}}>
-          <input style={inp}
-            placeholder="Search any UNSW course by code or name..."
-            value={search}
+          <input style={inp} placeholder="Search any UNSW course by code or name..." value={search}
             onChange={e=>{setSearch(e.target.value);setShowDrop(true);}}
-            onFocus={()=>setShowDrop(true)}
-            onBlur={()=>setTimeout(()=>setShowDrop(false),160)}/>
+            onFocus={()=>setShowDrop(true)} onBlur={()=>setTimeout(()=>setShowDrop(false),160)}/>
           {fetching&&<div style={{position:"absolute",right:"28px",top:"50%",transform:"translateY(-50%)",fontSize:"11px",color:C.textLight}}>searching...</div>}
           {showDrop&&filtered.length>0&&(
             <div style={{position:"absolute",top:"calc(100% - 2px)",left:"18px",right:"18px",zIndex:200,background:C.bg,border:`1px solid ${C.border}`,borderRadius:"10px",overflow:"hidden",maxHeight:"320px",overflowY:"auto",boxShadow:"0 8px 24px rgba(0,0,0,0.12)"}}>
@@ -1495,8 +1406,6 @@ function TimetableTab(){
             </div>
           )}
         </div>
-
-        {/* Selected courses */}
         {selected.length>0&&(
           <div style={{borderTop:`1px solid ${C.border}`}}>
             {selected.map(c=>(
@@ -1515,8 +1424,6 @@ function TimetableTab(){
           </div>
         )}
       </div>
-
-      {/* Timetable grid */}
       <div style={{...card,overflow:"auto"}}>
         <div style={cardH}>Weekly timetable. Click a cell to add a class</div>
         <div style={{padding:"12px",overflowX:"auto"}}>
@@ -1550,8 +1457,6 @@ function TimetableTab(){
           </div>
         </div>
       </div>
-
-      {/* Slot picker modal */}
       {addingSlot&&(
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.4)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center"}}
           onClick={e=>{if(e.target===e.currentTarget)setAddingSlot(null);}}>
@@ -1576,7 +1481,6 @@ function TimetableTab(){
           </div>
         </div>
       )}
-
       <div style={{fontSize:"11px",color:C.textLight,textAlign:"center"}}>
         Searches all UNSW courses live. Click a course code ↗ to open the handbook. Click a cell to add a class, click again to remove.
       </div>
@@ -1584,6 +1488,7 @@ function TimetableTab(){
   );
 }
 
+// ─── PROGRESS TAB ─────────────────────────────────────────────────────────────
 function ProgressTab({user}){
   const C=THEMES.dark;
   const[attempts,setAttempts]=useState([]);
@@ -1600,21 +1505,13 @@ function ProgressTab({user}){
       }).catch(()=>setLoading(false));
   },[user]);
 
-  const card={background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"16px",overflow:"hidden"};
+  const pcard={background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"16px",overflow:"hidden"};
   const overallColor=o=>o==="correct"?C.accent:o==="partial"?"#F59E0B":"#EF4444";
   const overallBg=o=>o==="correct"?"rgba(0,200,150,0.10)":o==="partial"?"rgba(245,158,11,0.10)":"rgba(239,68,68,0.10)";
 
-  if(!user) return(
-    <div style={{textAlign:"center",padding:"60px 0",color:C.textMid,fontSize:"15px"}}>Sign in to track your progress.</div>
-  );
-
-  if(loading) return(
-    <div style={{textAlign:"center",padding:"60px 0",color:C.textMid,fontSize:"15px"}}>Loading...</div>
-  );
-
-  if(attempts.length===0) return(
-    <div style={{textAlign:"center",padding:"60px 0",color:C.textMid,fontSize:"15px"}}>No attempts yet. Start practising!</div>
-  );
+  if(!user)return<div style={{textAlign:"center",padding:"60px 0",color:C.textMid,fontSize:"15px"}}>Sign in to track your progress.</div>;
+  if(loading)return<div style={{textAlign:"center",padding:"60px 0",color:C.textMid,fontSize:"15px"}}>Loading...</div>;
+  if(attempts.length===0)return<div style={{textAlign:"center",padding:"60px 0",color:C.textMid,fontSize:"15px"}}>No attempts yet. Start practising!</div>;
 
   const totalAttempted=attempts.length;
   const totalCorrect=attempts.filter(a=>a.overall==="correct").length;
@@ -1623,8 +1520,6 @@ function ProgressTab({user}){
 
   return(
     <div style={{display:"flex",flexDirection:"column",gap:"20px"}}>
-
-      {/* Summary row */}
       <div style={{display:"flex",gap:"12px",flexWrap:"wrap"}}>
         {[
           {n:totalAttempted,l:"Attempted"},
@@ -1632,18 +1527,14 @@ function ProgressTab({user}){
           {n:`${totalMarks}/${totalPossible}`,l:"Marks"},
           {n:totalAttempted>0?Math.round(totalCorrect/totalAttempted*100)+"%":"—",l:"Accuracy"},
         ].map(({n,l})=>(
-          <div key={l} style={{flex:1,minWidth:"100px",...card,padding:"16px",textAlign:"center"}}>
+          <div key={l} style={{flex:1,minWidth:"100px",...pcard,padding:"16px",textAlign:"center"}}>
             <div style={{fontSize:"26px",fontWeight:"700",color:"#fff",fontFamily:"Georgia,serif"}}>{n}</div>
             <div style={{fontSize:"11px",color:C.textLight,marginTop:"4px",letterSpacing:"0.1em",textTransform:"uppercase"}}>{l}</div>
           </div>
         ))}
       </div>
-
-      {/* Attempt list */}
-      <div style={card}>
-        <div style={{padding:"14px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",fontSize:"11px",fontWeight:"600",color:C.textLight,letterSpacing:"0.1em",textTransform:"uppercase"}}>
-          Recent Attempts
-        </div>
+      <div style={pcard}>
+        <div style={{padding:"14px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",fontSize:"11px",fontWeight:"600",color:C.textLight,letterSpacing:"0.1em",textTransform:"uppercase"}}>Recent Attempts</div>
         <div style={{display:"flex",flexDirection:"column"}}>
           {attempts.map((a,i)=>(
             <div key={a.id}>
@@ -1652,19 +1543,15 @@ function ProgressTab({user}){
                 onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.03)"}
                 onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontSize:"13px",fontWeight:"600",color:C.text,marginBottom:"3px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
-                    {a.course} · {a.topic}
-                  </div>
+                  <div style={{fontSize:"13px",fontWeight:"600",color:C.text,marginBottom:"3px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{a.course} · {a.topic}</div>
                   <div style={{fontSize:"11px",color:C.textLight}}>{a.difficulty} · {a.timestamp?.toDate?.()?.toLocaleDateString("en-AU",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</div>
                 </div>
                 <div style={{display:"flex",alignItems:"center",gap:"8px",flexShrink:0}}>
                   <span style={{fontSize:"13px",fontWeight:"700",color:overallColor(a.overall)}}>{a.marks_awarded}/{a.marks_total}</span>
                   <span style={{fontSize:"11px",fontWeight:"600",padding:"3px 10px",borderRadius:"999px",background:overallBg(a.overall),color:overallColor(a.overall),border:`1px solid ${overallColor(a.overall)}33`,textTransform:"capitalize"}}>{a.overall}</span>
-                  <span style={{fontSize:"12px",color:C.textLight,transition:"transform 0.15s",display:"inline-block",transform:selected?.id===a.id?"rotate(90deg)":"rotate(0deg)"}}>›</span>
+                  <span style={{fontSize:"12px",color:C.textLight,display:"inline-block",transform:selected?.id===a.id?"rotate(90deg)":"rotate(0deg)"}}>›</span>
                 </div>
               </div>
-
-              {/* Expanded view */}
               {selected?.id===a.id&&(
                 <div style={{padding:"16px 20px 20px",background:"rgba(0,0,0,0.2)",borderBottom:i<attempts.length-1?"1px solid rgba(255,255,255,0.04)":"none",display:"flex",flexDirection:"column",gap:"12px"}}>
                   <div style={{fontSize:"14px",color:C.text,lineHeight:1.8,fontFamily:"Georgia,serif",padding:"14px 16px",background:"rgba(255,255,255,0.03)",borderRadius:"10px",border:"1px solid rgba(255,255,255,0.06)"}}>
@@ -1695,6 +1582,8 @@ function ProgressTab({user}){
     </div>
   );
 }
+
+// ─── DASHBOARD TAB ────────────────────────────────────────────────────────────
 function DashboardTab({user}){
   const C=THEMES.dark;
   const[attempts,setAttempts]=useState([]);
@@ -1767,7 +1656,6 @@ function DashboardTab({user}){
         </h2>
         <p style={{fontSize:"14px",color:C.textMid}}>Your study activity at a glance</p>
       </div>
-
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"12px"}}>
         {[
           {n:totalAttempted,l:"Questions",sub:"attempted"},
@@ -1782,7 +1670,6 @@ function DashboardTab({user}){
           </div>
         ))}
       </div>
-
       <div style={dc}>
         <div style={{padding:"16px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div style={{fontSize:"13px",fontWeight:"600",color:C.text}}>Activity</div>
@@ -1821,7 +1708,6 @@ function DashboardTab({user}){
           </div>
         </div>
       </div>
-
       {attempts.length>0&&(
         <div style={dc}>
           <div style={{padding:"14px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",fontSize:"11px",fontWeight:"600",color:C.textLight,letterSpacing:"0.1em",textTransform:"uppercase"}}>Recent Activity</div>
@@ -1842,14 +1728,14 @@ function DashboardTab({user}){
     </div>
   );
 }
+
+// ─── APP ──────────────────────────────────────────────────────────────────────
 export default function App(){
   const[page,setPage]=useState("checker");
   const[calcTab,setCalcTab]=useState("wam");
-  const[theme,setTheme]=useState(()=>{try{return localStorage.getItem("vortex-theme")||"light";}catch{return"light";}});
   const[user,setUser]=useState(null);
   const[authLoading,setAuthLoading]=useState(true);
 
-  // Load Firebase and listen for auth state
   useEffect(()=>{
     loadFirebase().then(()=>{
       fbAuth.onAuthStateChanged(u=>{
@@ -1871,27 +1757,6 @@ export default function App(){
   };
 
   const T=THEMES["dark"];
-
-  useEffect(()=>{
-    if(!document.getElementById('katex-css')){
-      const link=document.createElement('link');
-      link.id='katex-css';link.rel='stylesheet';
-      link.href='https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css';
-      document.head.appendChild(link);
-    }
-    if(!document.getElementById('katex-js')){
-      const s1=document.createElement('script');
-      s1.id='katex-js';
-      s1.src='https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js';
-      s1.onload=()=>{
-        const s2=document.createElement('script');
-        s2.id='katex-ar';
-        s2.src='https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js';
-        document.head.appendChild(s2);
-      };
-      document.head.appendChild(s1);
-    }
-  },[]);
 
   useEffect(()=>{
     if(!document.getElementById('katex-css')){
@@ -1960,53 +1825,6 @@ export default function App(){
     window.addEventListener('resize',onResize);
     return()=>{cancelAnimationFrame(raf);window.removeEventListener('resize',onResize);};
   },[]);
-  if(!c)return;
-  const x=c.getContext('2d');
-  let W=window.innerWidth,H=window.innerHeight;
-  c.width=W;c.height=H;
-
-  const layers=[
-    Array.from({length:120},()=>({px:Math.random()*W,py:Math.random()*H,r:Math.random()*0.8+0.1,o:Math.random()*0.4+0.1,speed:Math.random()*0.003+0.001,dir:Math.random()>0.5?1:-1,vx:-0.05})),
-    Array.from({length:60},()=>({px:Math.random()*W,py:Math.random()*H,r:Math.random()*1.2+0.4,o:Math.random()*0.5+0.15,speed:Math.random()*0.005+0.002,dir:Math.random()>0.5?1:-1,vx:-0.12})),
-    Array.from({length:20},()=>({px:Math.random()*W,py:Math.random()*H,r:Math.random()*1.8+0.8,o:Math.random()*0.6+0.2,speed:Math.random()*0.007+0.003,dir:Math.random()>0.5?1:-1,vx:-0.2})),
-  ];
-
-  const nebulae=[
-    {x:W*0.15,y:H*0.3,r:300,color:"59,130,246"},
-    {x:W*0.82,y:H*0.18,r:240,color:"139,92,246"},
-    {x:W*0.6,y:H*0.75,r:280,color:"0,200,150"},
-    {x:W*0.25,y:H*0.82,r:200,color:"236,72,153"},
-  ];
-
-  let raf;
-  const draw=()=>{
-    x.clearRect(0,0,W,H);
-    nebulae.forEach(n=>{
-      const g=x.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r);
-      g.addColorStop(0,`rgba(${n.color},0.07)`);
-      g.addColorStop(0.5,`rgba(${n.color},0.025)`);
-      g.addColorStop(1,`rgba(${n.color},0)`);
-      x.fillStyle=g;
-      x.beginPath();x.arc(n.x,n.y,n.r,0,Math.PI*2);x.fill();
-    });
-    layers.forEach(layer=>{
-      layer.forEach(s=>{
-        s.o+=s.speed*s.dir;
-        if(s.o>0.8||s.o<0.05)s.dir*=-1;
-        s.px+=s.vx;
-        if(s.px<0)s.px=W;
-        x.beginPath();x.arc(s.px,s.py,s.r,0,Math.PI*2);
-        x.fillStyle=`rgba(200,220,255,${s.o.toFixed(2)})`;
-        x.fill();
-      });
-    });
-    raf=requestAnimationFrame(draw);
-  };
-  draw();
-  const onResize=()=>{W=window.innerWidth;H=window.innerHeight;c.width=W;c.height=H;};
-  window.addEventListener('resize',onResize);
-  return()=>{cancelAnimationFrame(raf);window.removeEventListener('resize',onResize);};
-},[]);
 
   return(
     <>
@@ -2014,16 +1832,13 @@ export default function App(){
       <style>{`:root{--c-bg:${T.bg};--c-sf:${T.surface};--c-b:${T.border};--c-bd:${T.borderDark};--c-t:${T.text};--c-tm:${T.textMid};--c-tl:${T.textLight};--c-a:${T.accent};--c-ad:${T.accentDark};--c-ab:${T.accentBg};--c-n:${T.navy};--c-nm:${T.navyMid};}*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Inter',sans-serif;background:${T.bg};color:${T.text};}input:focus,select:focus,textarea:focus{border-color:${T.accent}!important;box-shadow:0 0 0 3px rgba(0,200,150,0.12);}input[type=range]{accent-color:${T.accent};}#stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}nav,main,footer,.hero-section{position:relative;z-index:1;}`}</style>
       <canvas id="stars-canvas"></canvas>
 
-      {/* ── TOP NAV ── */}
       <nav style={{position:"sticky",top:0,zIndex:100,background:T.bg,borderBottom:`1px solid ${T.border}`,boxShadow:"0 1px 3px rgba(0,0,0,0.06)"}}>
         <div style={{maxWidth:"1100px",margin:"0 auto",padding:"0 24px",height:"60px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          {/* Logo */}
           <div style={{display:"flex",alignItems:"center",cursor:"pointer",gap:"8px"}} onClick={()=>setPage("checker")}>
             <span style={{fontSize:"20px",fontWeight:"800",color:"#ffffff",letterSpacing:"-0.02em",fontFamily:"Georgia,serif"}}>Vortex</span>
           </div>
-          {/* Nav links */}
           <div style={{display:"flex",alignItems:"center",gap:"4px"}}>
-           {[{id:"checker",label:"AI Checker"},{id:"calculators",label:"Calculators"},{id:"timetable",label:"Timetable"},...(user?[{id:"dashboard",label:"Dashboard"},{id:"progress",label:"Progress"}]:[])].map(({id,label})=>(
+            {[{id:"checker",label:"AI Checker"},{id:"calculators",label:"Calculators"},{id:"timetable",label:"Timetable"},...(user?[{id:"dashboard",label:"Dashboard"},{id:"progress",label:"Progress"}]:[])].map(({id,label})=>(
               <button key={id} onClick={()=>setPage(id)} style={{padding:"8px 16px",borderRadius:"8px",border:"none",fontFamily:"inherit",fontSize:"14px",fontWeight:"600",cursor:"pointer",transition:"all 0.15s",
                 background:page===id?T.accentBg:"transparent",
                 color:page===id?T.accentDark:T.textMid}}>
@@ -2040,19 +1855,18 @@ export default function App(){
               </div>
             ):(
               <div style={{display:"flex",alignItems:"center",gap:"6px",marginLeft:"4px"}}>
-  <button onClick={signInWithGoogle} style={{display:"flex",alignItems:"center",gap:"7px",padding:"7px 13px",borderRadius:"8px",border:`1px solid ${T.border}`,background:"transparent",color:T.textMid,fontSize:"13px",fontWeight:"600",cursor:"pointer",fontFamily:"inherit"}}>
-    Sign in
-  </button>
-  <button onClick={signInWithGoogle} style={{display:"flex",alignItems:"center",gap:"7px",padding:"7px 13px",borderRadius:"8px",border:"none",background:T.accent,color:"#fff",fontSize:"13px",fontWeight:"600",cursor:"pointer",fontFamily:"inherit"}}>
-    Sign up
-  </button>
-</div>
+                <button onClick={signInWithGoogle} style={{display:"flex",alignItems:"center",gap:"7px",padding:"7px 13px",borderRadius:"8px",border:`1px solid ${T.border}`,background:"transparent",color:T.textMid,fontSize:"13px",fontWeight:"600",cursor:"pointer",fontFamily:"inherit"}}>
+                  Sign in
+                </button>
+                <button onClick={signInWithGoogle} style={{display:"flex",alignItems:"center",gap:"7px",padding:"7px 13px",borderRadius:"8px",border:"none",background:T.accent,color:"#fff",fontSize:"13px",fontWeight:"600",cursor:"pointer",fontFamily:"inherit"}}>
+                  Sign up
+                </button>
+              </div>
             ))}
           </div>
         </div>
       </nav>
 
-      {/* ── HERO ── */}
       {page==="checker"&&(
         <div style={{background:"linear-gradient(180deg,rgba(0,0,0,0.3) 0%,transparent 100%)",padding:"28px 24px 0",textAlign:"center"}}>
           <div style={{display:"inline-block",background:"rgba(0,200,150,0.12)",border:"1px solid rgba(0,200,150,0.25)",borderRadius:"20px",padding:"4px 14px",fontSize:"11px",fontWeight:"600",color:C.accent,letterSpacing:"0.1em",textTransform:"uppercase"}}>
@@ -2079,15 +1893,13 @@ export default function App(){
         </div>
       )}
 
-      {/* ── CONTENT ── */}
       <main style={{maxWidth:page==="timetable"?"960px":"700px",margin:"0 auto",padding:"32px 24px 60px"}}>
         {page==="checker"&&<AICheckerTab user={user}/>}
-{page==="dashboard"&&<DashboardTab user={user}/>}
-{page==="progress"&&<ProgressTab user={user}/>}
+        {page==="dashboard"&&<DashboardTab user={user}/>}
+        {page==="progress"&&<ProgressTab user={user}/>}
         {page==="timetable"&&<TimetableTab/>}
         {page==="calculators"&&(
           <>
-            {/* Subtabs */}
             <div style={{display:"flex",gap:"6px",marginBottom:"24px",background:C.surface,padding:"4px",borderRadius:"10px",border:`1px solid ${C.border}`}}>
               {[{id:"wam",label:"WAM Calculator"},{id:"hsc",label:"HSC Mark"}].map(({id,label})=>(
                 <button key={id} onClick={()=>setCalcTab(id)} style={{flex:1,padding:"9px 0",borderRadius:"7px",border:"none",fontFamily:"inherit",fontSize:"13px",fontWeight:"600",cursor:"pointer",transition:"all 0.15s",
@@ -2104,7 +1916,6 @@ export default function App(){
         )}
       </main>
 
-      {/* ── FOOTER ── */}
       <footer style={{borderTop:`1px solid ${C.border}`,padding:"20px 24px",textAlign:"center",fontSize:"12px",color:C.textLight}}>
         School data from 2025 NSW HSC results (NESA) · Estimates only · Data saved in your browser
       </footer>
