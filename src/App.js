@@ -1740,39 +1740,6 @@ function DashboardTab({user}){
 }
 
 // ─── APP ──────────────────────────────────────────────────────────────────────
-function HomeFeatures(){
-  const C=THEMES.dark;
-  const features=[
-    {fig:"FIG 0.1",title:"AI-powered questions",desc:"Generate unique exam-style questions across HSC and university subjects, marked instantly with step-by-step feedback.",icon:(
-      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-        <rect x="10" y="10" width="60" height="60" rx="8" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" fill="none"/>
-        <rect x="20" y="20" width="40" height="6" rx="2" stroke="rgba(255,255,255,0.2)" strokeWidth="1" fill="none"/>
-        <rect x="20" y="32" width="28" height="6" rx="2" stroke="rgba(255,255,255,0.2)" strokeWidth="1" fill="none"/>
-        <rect x="20" y="44" width="34" height="6" rx="2" stroke="rgba(255,255,255,0.2)" strokeWidth="1" fill="none"/>
-        <circle cx="58" cy="58" r="10" stroke="rgba(0,200,150,0.4)" strokeWidth="1.5" fill="none"/>
-        <path d="M54 58l3 3 6-6" stroke="rgba(0,200,150,0.6)" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
-    )},
-    {fig:"FIG 0.2",title:"Built for students",desc:"WAM calculator, HSC mark estimator, and a timetable planner — every tool a UNSW or HSC student needs in one place.",icon:(
-      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-        <rect x="15" y="15" width="22" height="22" rx="4" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" fill="none"/>
-        <rect x="43" y="15" width="22" height="22" rx="4" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" fill="none"/>
-        <rect x="15" y="43" width="22" height="22" rx="4" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" fill="none"/>
-        <rect x="43" y="43" width="22" height="22" rx="4" stroke="rgba(99,102,241,0.4)" strokeWidth="1.5" fill="none"/>
-        <path d="M49 54h10M54 49v10" stroke="rgba(99,102,241,0.6)" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
-    )},
-    {fig:"FIG 0.3",title:"Track your progress",desc:"Every attempt is saved. See your accuracy, marks earned, and study streaks — all synced to your account.",icon:(
-      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-        <rect x="10" y="10" width="60" height="60" rx="8" stroke="rgba(255,255,255,0.1)" strokeWidth="1" fill="none"/>
-        <path d="M20 55 L32 38 L44 45 L56 25" stroke="rgba(0,200,150,0.5)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-        <circle cx="20" cy="55" r="2.5" fill="rgba(0,200,150,0.4)"/>
-        <circle cx="32" cy="38" r="2.5" fill="rgba(0,200,150,0.4)"/>
-        <circle cx="44" cy="45" r="2.5" fill="rgba(0,200,150,0.4)"/>
-        <circle cx="56" cy="25" r="2.5" fill="rgba(0,200,150,0.7)"/>
-      </svg>
-    )},
-  ];
   return(
     <div style={{marginTop:"80px",paddingTop:"60px",borderTop:"1px solid rgba(255,255,255,0.06)"}}>
       <p style={{fontSize:"26px",fontWeight:"700",color:"rgba(255,255,255,0.9)",fontFamily:"Georgia,serif",letterSpacing:"-0.02em",marginBottom:"8px",lineHeight:1.3}}>
