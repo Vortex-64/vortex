@@ -610,10 +610,9 @@ Correct solution steps: ${question.solution_steps.join(" | ")}
 Final answer: ${question.final_answer}
 Evaluate the student's working step by step.
 IMPORTANT: Wrap ALL mathematical expressions in $ signs for LaTeX rendering. For example: $x^2$, $\\frac{dy}{dx}$, $e^{2x}(1+2x)$.
-Return ONLY valid JSON (no markdown, no trailing commas, no comments):
-{"marks_awarded":<int 0 to ${question.marks}>,"overall":"correct","feedback_lines":[{"type":"correct","text":"feedback"}],"summary":"one sentence"}
-The "overall" value must be exactly one of: correct, partial, incorrect.`;
-Award marks fairly for correct method even if minor arithmetic slips.`;
+Return ONLY valid JSON with no markdown and no trailing commas:
+{"marks_awarded":0,"overall":"incorrect","feedback_lines":[{"type":"correct","text":"feedback here"}],"summary":"one sentence"}
+The marks_awarded must be an integer from 0 to ${question.marks}. The overall field must be exactly one of: correct, partial, incorrect. Award marks fairly for correct method even if minor arithmetic slips.`;
       const raw=await callClaude(system,`Student's answer:\n${answer}`);
       const fb=parseJSON(raw);
       setFeedback(fb);
