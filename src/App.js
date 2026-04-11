@@ -1771,6 +1771,11 @@ function HomePage({user,onStart}){
         </div>
       </div>
       <div style={{width:"100%",maxWidth:"960px",padding:"0 24px 80px"}}>
+              <div style={{textAlign:"center",marginBottom:"64px"}}>
+          <p style={{fontSize:"clamp(22px,3vw,32px)",fontWeight:"700",color:"rgba(255,255,255,0.9)",fontFamily:"Georgia,serif",letterSpacing:"-0.02em",whiteSpace:"nowrap"}}>
+            Study smarter. <span style={{color:"rgba(255,255,255,0.3)"}}>Not just harder.</span>
+          </p>
+        </div>
         <HomeFeatures/>
       </div>
     </div>
@@ -1903,9 +1908,6 @@ function HomeFeatures(){
   return(
     <div style={{marginTop:"120px",borderTop:"1px solid rgba(255,255,255,0.06)",paddingTop:"80px"}}>
       <p style={{fontSize:"13px",color:"rgba(255,255,255,0.25)",letterSpacing:"0.15em",textTransform:"uppercase",marginBottom:"20px",fontFamily:"monospace"}}>What Vortex does</p>
-      <h2 style={{fontSize:"clamp(28px,4vw,42px)",fontWeight:"700",color:"rgba(255,255,255,0.9)",fontFamily:"Georgia,serif",letterSpacing:"-0.02em",lineHeight:1.2,marginBottom:"80px",maxWidth:"500px"}}>
-        Study smarter. <span style={{color:"rgba(255,255,255,0.25)"}}>Not just harder.</span>
-      </h2>
 
       {sections.map((s,i)=>(
         <div key={i} ref={sectionRefs[i]}
