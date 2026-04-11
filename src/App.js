@@ -731,7 +731,6 @@ Analyse the student's working rigorously. Return ONLY valid JSON, no markdown:
                   </button>
                 </div>
               )}
-<HomeFeatures/>
               {courseType&&(
                 <div style={{fontSize:"14px",color:C.textMid,lineHeight:1.7,maxWidth:"340px"}}>
                   Select your course and topic below, then hit the arrow to get a question.
